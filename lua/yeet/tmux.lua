@@ -11,7 +11,7 @@ function M._job(cmd, on_stdout)
         on_exit = function(_, exit_code, _)
             if exit_code ~= 0 then
                 vim.notify(
-                    string.format("[yeet.nvim] '%s' failed", cmd),
+                    string.format("[yeet.nvim] '%s' failed", cmd:sub(1, 20)),
                     vim.log.levels.WARN
                 )
             end
