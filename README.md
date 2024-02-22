@@ -82,10 +82,10 @@ Example keymappings:
         {
             -- Toggle autocommand for yeeting after write.
             "<leader>yo", function() require("yeet").toggle_post_write() end,
-        }
+        },
         {
             -- Run command without clearing terminal
-            "<leader>\\", function() require("yeet").execute({clear_before_yeet=false}) end,
+            "<leader>\\", function() require("yeet").execute(nil, { clear_before_yeet = false, yeet_and_run = true }) end,
         }
     }
 }
