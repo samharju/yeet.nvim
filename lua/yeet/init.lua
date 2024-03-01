@@ -30,10 +30,10 @@ function M.select_target(callback)
         prompt = string.format("Yeet '%s' to:", M._cmd),
         format_item = function(item)
             if M._target ~= nil and (item.channel == M._target.channel) then
-                return ">>" .. item.name
+                return ">> " .. item.name
             end
 
-            return "  " .. item.name
+            return "   " .. item.name
         end,
     }, function(choice)
         if choice == nil then
@@ -66,17 +66,15 @@ function M.execute(cmd, opts)
 
     cmd = cmd or M._cmd
 
-    log("execute", cmd)
-
-    if cmd == nil then
+    if cmd ~= nil then
+        M.set_cmd(cmd)
+    else
         -- No command given and no cache, prompt for command and
         -- callback to execute
         log("no command, callback after set_cmd")
         return M.set_cmd(nil, function()
             M.execute(nil, opts)
         end)
-    else
-        M.set_cmd(cmd)
     end
 
     if M._target == nil then
@@ -91,11 +89,13 @@ function M.execute(cmd, opts)
     log("execute", cmd)
 
     local ok = false
+
     if M._target.type == "buffer" then
         ok = buffer.send(M._target, cmd, opts)
     elseif M._target.type == "tmux" then
         ok = tmux.send(M._target, cmd, opts)
     end
+
     log("execute", cmd, "to", M._target.name, "ok:", ok)
     if ok and opts.notify_on_success then
         vim.notify(
@@ -131,37 +131,6 @@ function M.toggle_post_write()
         pattern = "*",
         callback = function()
             M.execute()
-        end,
-    })
-end
-
-function M._create_user_command()
-    vim.api.nvim_create_user_command("Yeet", function(args)
-        local subcmd, arg = split_cmd(args.args)
-        if subcmd == "" or subcmd == "execute" then
-            if arg ~= nil then
-                error("subcommand execute does not accept arguments")
-            end
-            M.execute()
-        elseif subcmd == "select_target" then
-            if arg ~= nil then
-                error("subcommand select_target does not accept arguments")
-                return
-            end
-            M.select_target()
-        elseif subcmd == "set_cmd" then
-            M.set_cmd(arg)
-        elseif subcmd == "toggle_post_write" then
-            if arg ~= nil then
-                error("subcommand toggle_post_write does not accept arguments")
-                return
-            end
-            M.toggle_post_write()
-        end
-    end, {
-        nargs = "?",
-        complete = function()
-            return { "select_target", "execute", "set_cmd", "toggle_post_write" }
         end,
     })
 end
@@ -212,6 +181,39 @@ function M._update()
     end
 
     return options
+end
+
+local function yeetcmd(args)
+    local subcmd, arg = split_cmd(args.args)
+    if subcmd == "" or subcmd == "execute" then
+        if arg ~= nil then
+            error("subcommand execute does not accept arguments")
+        end
+        M.execute()
+    elseif subcmd == "select_target" then
+        if arg ~= nil then
+            error("subcommand select_target does not accept arguments")
+            return
+        end
+        M.select_target()
+    elseif subcmd == "set_cmd" then
+        M.set_cmd(arg)
+    elseif subcmd == "toggle_post_write" then
+        if arg ~= nil then
+            error("subcommand toggle_post_write does not accept arguments")
+            return
+        end
+        M.toggle_post_write()
+    end
+end
+
+function M._create_user_command()
+    vim.api.nvim_create_user_command("Yeet", yeetcmd, {
+        nargs = "?",
+        complete = function()
+            return { "select_target", "execute", "set_cmd", "toggle_post_write" }
+        end,
+    })
 end
 
 return M
