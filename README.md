@@ -58,6 +58,8 @@ Default options:
         -- Enable notify for yeets. Success notifications may be a little
         -- too much if you are using noice.nvim or fidget.nvim
         notify_on_success = true,
+        -- Print warning if pane list could not be fetched, e.g. tmux not running.
+        warn_tmux_not_running = false,
     }
 }
 ```
@@ -85,7 +87,9 @@ Example keymappings:
         },
         {
             -- Run command without clearing terminal
-            "<leader>\\", function() require("yeet").execute(nil, { clear_before_yeet = false, yeet_and_run = true }) end,
+            "<leader>\\", function()
+                require("yeet").execute(nil, { clear_before_yeet = false})
+            end,
         }
     }
 }
