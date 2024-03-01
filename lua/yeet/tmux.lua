@@ -55,6 +55,13 @@ end
 ---@param opts YeetConfig
 ---@return boolean ok
 function M.send(target, cmd, opts)
+    -- Scrolling logs in other pane puts tmux in copy mode, which blocks
+    -- command execution. Try exiting that first.
+    M._job(
+        string.format("tmux send -t %%%s -X cancel", target.channel),
+        nil,
+        false
+    )
     if opts.clear_before_yeet then
         M._job(
             string.format("tmux send -t %%%s clear ENTER", target.channel),
