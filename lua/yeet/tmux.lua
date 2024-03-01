@@ -81,10 +81,12 @@ function M.send(target, cmd, opts)
     return M._job(c, nil, true)[1] == -0
 end
 
-local prefix = "#D #{session_name}:#{window_index}.#{pane_index} cwd: #{b:pane_current_path}"
-local position =
-"#{?#{==:#{window_panes},1},,, position: #{?pane_at_top,top,#{?pane_at_bottom,bottom,}}#{?pane_at_left,left,#{?pane_at_right,right,}}"
-local active = " #{?pane_active,(active),}}"
+local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
+    .. "cwd: #{b:pane_current_path}"
+    .. "#{?#{==:#{window_panes},1},,, "
+    .. "position: #{?pane_at_top,top,#{?pane_at_bottom,bottom,}}"
+    .. "#{?pane_at_left,left,#{?pane_at_right,right,}} "
+    .. "#{?pane_active,(active),}}"
 
 ---@return Target[]
 ---@param opts YeetConfig
@@ -92,7 +94,8 @@ function M.get_panes(opts)
     log("update targets")
 
     local temp = {}
-    local cmd = "tmux list-panes -a -F '" .. prefix .. position .. active .. "'"
+    local cmd = string.format("tmux list-panes -a -F '%s'", listpanefmt)
+
     local job_id = M._job(cmd, function(_, data, _)
         for _, t in ipairs(data) do
             if t ~= "" then
@@ -105,15 +108,15 @@ function M.get_panes(opts)
 
     local targets = {}
     for _, line in ipairs(temp) do
-        local channel, short = line:match("^%%(%d+) (.*) cwd")
+        local channel, long, short = line:match("^%%(%d+) ((.*) cwd.*)")
 
         if channel ~= nil then
             ---@type Target
             local t = {
                 channel = channel,
                 type = "tmux",
-                name = "[tmux] " .. line,
-                shortname = "[tmux] " .. short
+                name = "[tmux] " .. long,
+                shortname = "[tmux] " .. short,
             }
             table.insert(targets, t)
         end
