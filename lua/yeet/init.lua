@@ -1,50 +1,19 @@
 local buffer = require("yeet.buffer")
+local defaultconf = require("yeet.conf")
 local log = require("yeet.dev")
 local tmux = require("yeet.tmux")
 
----@class YeetConfig
----@field yeet_and_run boolean
----@field clear_before_yeet boolean
----@field rename_yeet_buffer boolean
-
----@class Target
----@field type string
----@field channel integer
----@field buffer integer?
----@field name string
----@field shortname string
-
 ---@class YeetPlugin
----@field config YeetConfig
----@field _target Target?
----@field _cmd string?
-
--- Default settings.
-local defaults = {
-    -- Send <CR> to channel after command for immediate execution.
-    yeet_and_run = true,
-    -- Send 'clear<CR>' to channel before command for clean output.
-    clear_before_yeet = true,
-    -- Enable notify for yeets
-    notify_on_success = true,
-}
-
 local M = {
-    config = defaults,
+    config = defaultconf,
     _target = nil,
     _cmd = nil,
 }
 
 --- Apply user config and create user command.
----@param opts YeetConfig?
+---@param opts PartialYeetConfig?
 function M.setup(opts)
-    local o = {}
-
-    if opts ~= nil then
-        o = opts
-    end
-
-    M.config = setmetatable(o, { __index = defaults })
+    M.config = vim.tbl_extend("force", defaultconf, opts or {})
     log("setup:", M.config)
     M._create_user_command()
 end
@@ -91,11 +60,9 @@ end
 ---If no command is given, use current in-memory command.
 -- If no in-memory command is set, prompt for command.
 ---@param cmd? string
----@param opts? YeetConfig
+---@param opts? PartialYeetConfig
 function M.execute(cmd, opts)
-    if opts == nil then
-        opts = M.config
-    end
+    opts = vim.tbl_extend("force", M.config, opts or {})
 
     cmd = cmd or M._cmd
 
