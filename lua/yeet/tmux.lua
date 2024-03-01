@@ -63,7 +63,9 @@ function M.send(target, cmd, opts)
         )
     end
 
-    local c = string.format("tmux send -t %%%s '%s'", target.channel, cmd)
+    cmd = string.gsub(cmd, '"', '\\"')
+
+    local c = string.format('tmux send -t %%%s "%s"', target.channel, cmd)
 
     if opts.yeet_and_run then
         c = c .. " ENTER"
