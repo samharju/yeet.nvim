@@ -2,16 +2,22 @@ local log = require("yeet.dev")
 
 local M = {}
 
-function M._job(cmd, on_stdout)
+---@param cmd string
+---@param on_stdout? function
+---@param warn boolean
+function M._job(cmd, on_stdout, warn)
     log(cmd)
     local job_id = vim.fn.jobstart(cmd, {
         stderr_buffered = true,
         stdout_buffered = true,
 
         on_exit = function(_, exit_code, _)
-            if exit_code ~= 0 then
+            if exit_code ~= 0 and warn then
                 vim.notify(
-                    string.format("[yeet.nvim] '%s' failed", cmd:sub(1, 20)),
+                    string.format(
+                        "[yeet.nvim] '%s...' failed",
+                        string.sub(cmd, 1, 23)
+                    ),
                     vim.log.levels.WARN
                 )
             end
@@ -19,6 +25,9 @@ function M._job(cmd, on_stdout)
         end,
 
         on_stderr = function(_, data, _)
+            if not warn then
+                return
+            end
             for _, line in ipairs(data) do
                 if line ~= "" then
                     vim.notify("[yeet.nvim] " .. line, vim.log.levels.WARN)
@@ -49,7 +58,8 @@ function M.send(target, cmd, opts)
     if opts.clear_before_yeet then
         M._job(
             string.format("tmux send -t %%%s clear ENTER", target.channel),
-            nil
+            nil,
+            true
         )
     end
 
@@ -59,7 +69,7 @@ function M.send(target, cmd, opts)
         c = c .. " ENTER"
     end
 
-    return M._job(c, nil)[1] == -0
+    return M._job(c, nil, true)[1] == -0
 end
 
 local prefix = "#D #{session_name}:#{window_index}.#{pane_index} cwd: #{b:pane_current_path}"
@@ -68,7 +78,8 @@ local position =
 local active = " #{?pane_active,(active),}}"
 
 ---@return Target[]
-function M.get_panes()
+---@param opts YeetConfig
+function M.get_panes(opts)
     log("update targets")
 
     local temp = {}
@@ -79,7 +90,7 @@ function M.get_panes()
                 table.insert(temp, t)
             end
         end
-    end)
+    end, opts.warn_tmux_not_running)
 
     vim.fn.jobwait({ job_id })
 

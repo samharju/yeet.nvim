@@ -207,7 +207,7 @@ function M._update()
     for _, v in ipairs(buffer.get_channels()) do
         table.insert(options, v)
     end
-    for _, v in ipairs(tmux.get_panes()) do
+    for _, v in ipairs(tmux.get_panes(M.config)) do
         table.insert(options, v)
     end
 
