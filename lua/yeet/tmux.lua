@@ -106,11 +106,13 @@ function M.get_panes(opts)
 
     vim.fn.jobwait({ job_id })
 
+    local current_pane = os.getenv("TMUX_PANE")
+
     local targets = {}
     for _, line in ipairs(temp) do
         local channel, long, short = line:match("^%%(%d+) ((.*) cwd.*)")
 
-        if channel ~= nil then
+        if channel ~= nil and current_pane ~= "%" .. channel then
             ---@type Target
             local t = {
                 channel = channel,
