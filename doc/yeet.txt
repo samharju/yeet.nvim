@@ -1,0 +1,133 @@
+==============================================================================
+Table of Contents                                                    *yeet.nvim*
+
+SETUP ····························································· |yeet-setup|
+USER COMMAND ···················································· |yeet-command|
+API ····································································· |yeet|
+
+==============================================================================
+SETUP                                                               *yeet-setup*
+
+Options                                                           *yeet.Options*
+
+    Fields: ~
+        {yeet_and_run?}           (boolean)       Execute command immediately.
+        {clear_before_yeet?}      (boolean)       Clear buffer before execution.
+        {notify_on_success?}      (boolean)       Print success notifications.
+        {warn_tmux_not_running?}  (boolean)       Print warning message if tmux is not up.
+        {use_cache_file?}         (boolean)       Use cache-file for persisting commands.
+        {cache?}                  (fun():string)  Resolver for cache file.
+        {cache_window_opts?}      (table)         Configuration passed to |nvim_open_win()|
+
+    See: ~
+        |standard-path|
+        |uv.cwd|
+
+
+Default cache solution is to create a cwd-specific file in
+stdpath("cache") .. "/yeet/". Modify cache file location with custom cache-function.
+Example of using a file named ".yeet" in project root:
+>lua
+   {
+     cache = function()
+       -- project local cache, maybe add to global .gitignore for commit hygiene
+       return ".yeet"
+     end
+   }
+<
+Keep the builtin naming scheme for cache files, but in different location:
+
+>lua
+   {
+     cache = function()
+       return require("yeet.conf").cachepath("~/some/dir")
+     end
+   }
+<
+
+M.setup({opts?})                                                    *yeet.setup*
+    Apply user config and register |yeet-command|.
+
+    Parameters: ~
+        {opts?}  (Options)  Custom settings.
+
+
+==============================================================================
+USER COMMAND                                                      *yeet-command*
+
+:Yeet <subcommand>
+
+     Subcommands:
+         select_target       => |yeet.select_target|
+         execute             => |yeet.execute|
+         toggle_post_write   => |yeet.toggle_post_write|
+         set_cmd             => |yeet.set_cmd|
+         list_cmd            => |yeet.list_cmd|
+
+Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
+and for those calls that are not needed often enough to deserve a dedicated keymap.
+
+==============================================================================
+API                                                                       *yeet*
+
+Use these calls with your preferred keymaps.
+
+M.select_target({callback?})                                *yeet.select_target*
+    Fetch available term buffers and tmux panes. Open prompt for target selection.
+    If callback given, it is called after target selection without any arguments.
+    Callback is used internally to chain api calls, so it can be ignored.
+
+    Parameters: ~
+        {callback?}  (fun())
+
+
+M.execute({cmd?}, {opts?})                                        *yeet.execute*
+    Send given command to selected target.
+
+    Flow:
+         1. If no command given or previously selected, opens prompt
+         2. If no target previously selected, opens prompt
+         3. Sends command to target
+
+    If command or target needs to be changed from what was given in the first
+    call of this function, use |yeet.select_target| for target and
+    |yeet.set_cmd| or |yeet.list_cmd| for command.
+
+    Options given are used for only this invocation, options registered
+    in setup are not modified permanently.
+
+    Parameters: ~
+        {cmd?}   (string)
+        {opts?}  (Options)
+
+    Usage: ~
+>lua
+        require("yeet").execute()
+        require("yeet").execute("echo hello world")
+        require("yeet").execute(nil, { clear_before_yeet = false })
+<
+
+
+M.toggle_post_write()                                   *yeet.toggle_post_write*
+    Toggle autoyeeting, calls |yeet.execute| on |BufWritePost|.
+
+
+M.set_cmd({cmd?}, {callback?})                                    *yeet.set_cmd*
+    Prompts for command. Sets in-memory command which will be used for following
+    calls for |yeet.execute|. Callback can be ignored.
+
+    Parameters: ~
+        {cmd?}       (string)
+        {callback?}  (fun())
+
+
+M.list_cmd({filepath?})                                          *yeet.list_cmd*
+    List commands stored in cache file. File will be opened to a new window with
+    configuration defined in setup options. Optional filepath can be given to
+    bypass what was given in setup.
+
+    Parameters: ~
+        {filepath?}  (string)
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

@@ -50,7 +50,7 @@ end
 ---Send command to target term buffer.
 ---@param target Target
 ---@param cmd string
----@param opts YeetConfig
+---@param opts Config
 ---@return boolean ok
 function M.send(target, cmd, opts)
     if not vim.api.nvim_buf_is_valid(target.buffer) then

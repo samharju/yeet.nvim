@@ -1,28 +1,143 @@
+---@toc yeet.nvim
+
 local buffer = require("yeet.buffer")
-local defaultconf = require("yeet.conf")
+local c = require("yeet.conf")
+local cache = require("yeet.cache")
 local log = require("yeet.dev")
 local tmux = require("yeet.tmux")
 
----@class YeetPlugin
 local M = {
-    config = defaultconf,
+    ---@type Config
+    config = c.defaults,
+    ---@type string
+    _cache = c.cachepath(),
+    ---@type Target?
     _target = nil,
+    ---@type string?
     _cmd = nil,
 }
 
---- Apply user config and create user command.
----@param opts PartialYeetConfig?
+---@mod yeet-setup SETUP
+
+---@class Options
+---@field yeet_and_run? boolean Execute command immediately.
+---@field clear_before_yeet? boolean Clear buffer before execution.
+---@field notify_on_success? boolean Print success notifications.
+---@field warn_tmux_not_running? boolean Print warning message if tmux is not up.
+---@field use_cache_file? boolean Use cache-file for persisting commands.
+---@field cache? fun():string Resolver for cache file.
+---@field cache_window_opts? table Configuration passed to |nvim_open_win()|
+---@see standard-path
+---@see uv.cwd
+
+---@brief [[
+---Default cache solution is to create a cwd-specific file in
+---stdpath("cache") .. "/yeet/". Modify cache file location with custom cache-function.
+---Example of using a file named ".yeet" in project root:
+--->lua
+---   {
+---     cache = function()
+---       -- project local cache, maybe add to global .gitignore for commit hygiene
+---       return ".yeet"
+---     end
+---   }
+---<
+---Keep the builtin naming scheme for cache files, but in different location:
+---
+--->lua
+---   {
+---     cache = function()
+---       return require("yeet.conf").cachepath("~/some/dir")
+---     end
+---   }
+---<
+---@brief ]]
+
+---Apply user config and register |yeet-command|.
+---@param opts? Options Custom settings.
 function M.setup(opts)
-    M.config = vim.tbl_extend("force", defaultconf, opts or {})
-    log("setup:", M.config)
-    M._create_user_command()
+    log("user config:", opts)
+    M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+    M._cache = M.config.cache()
+
+    local subcmds = {
+        select_target = M.select_target,
+        execute = M.execute,
+        set_cmd = M.set_cmd,
+        toggle_post_write = M.toggle_post_write,
+        list_cmd = M.list_cmd,
+    }
+
+    vim.api.nvim_create_user_command("Yeet", function(args)
+        local subcmd = args.args
+        if subcmds[subcmd] ~= nil then
+            M[subcmd]()
+            return
+        end
+        vim.notify(
+            string.format("Unknown subcommand: %s", subcmd),
+            vim.log.levels.ERROR
+        )
+    end, {
+        nargs = "?",
+        complete = function()
+            local k = {}
+            for key, _ in pairs(subcmds) do
+                table.insert(k, key)
+            end
+            return k
+        end,
+    })
 end
 
---- Fetch available term buffers and tmux panes.
---- Open prompt for selection.
----@param callback? function
+---@mod yeet-command USER COMMAND
+---
+---@brief [[
+---:Yeet <subcommand>
+---
+---     Subcommands:
+---         select_target       => |yeet.select_target|
+---         execute             => |yeet.execute|
+---         toggle_post_write   => |yeet.toggle_post_write|
+---         set_cmd             => |yeet.set_cmd|
+---         list_cmd            => |yeet.list_cmd|
+---
+---Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
+---and for those calls that are not needed often enough to deserve a dedicated keymap.
+---@brief ]]
+
+---@mod yeet API
+---@brief [[
+---Use these calls with your preferred keymaps.
+---@brief ]]
+
+---@param cmd Target
+local function set_target(cmd)
+    M._target = cmd
+    log("target now:", M._target)
+end
+
+---@return Target[]
+local function refresh_targets()
+    local options = {
+        { type = "new", name = "[create new term buffer]", channel = 0 },
+    }
+    for _, v in ipairs(buffer.get_channels()) do
+        table.insert(options, v)
+    end
+    for _, v in ipairs(tmux.get_panes(M.config)) do
+        table.insert(options, v)
+    end
+
+    return options
+end
+
+---Fetch available term buffers and tmux panes. Open prompt for target selection.
+---If callback given, it is called after target selection without any arguments.
+---Callback is used internally to chain api calls, so it can be ignored.
+---@param callback? fun()
 function M.select_target(callback)
-    local targets = M._update()
+    local targets = refresh_targets()
 
     log("updated targets:", targets)
 
@@ -39,48 +154,80 @@ function M.select_target(callback)
         if choice == nil then
             return
         end
-        log(choice)
+        log("selection:", choice)
 
         if choice.type == "new" then
-            M._set_target(buffer.new())
+            set_target(buffer.new())
         else
             log("_set_target", choice)
-            M._set_target(choice)
+            set_target(choice)
         end
 
         if callback ~= nil then
-            log("callback")
             callback()
         end
     end)
 end
 
----Yeet given command to selected target.
----If no target is selected, prompt for selection.
----If no command is given, use current in-memory command.
--- If no in-memory command is set, prompt for command.
+---Send given command to selected target.
+---
+---Flow:
+---     1. If no command given or previously selected, opens prompt
+---     2. If no target previously selected, opens prompt
+---     3. Sends command to target
+---
+---If command or target needs to be changed from what was given in the first
+---call of this function, use |yeet.select_target| for target and
+---|yeet.set_cmd| or |yeet.list_cmd| for command.
+---
+---Options given are used for only this invocation, options registered
+---in setup are not modified permanently.
 ---@param cmd? string
----@param opts? PartialYeetConfig
+---@param opts? Options
+---@usage [[
+---require("yeet").execute()
+---require("yeet").execute("echo hello world")
+---require("yeet").execute(nil, { clear_before_yeet = false })
+---@usage ]]
 function M.execute(cmd, opts)
     opts = vim.tbl_extend("force", M.config, opts or {})
 
     cmd = cmd or M._cmd
 
-    if cmd ~= nil then
-        M.set_cmd(cmd)
-    else
+    if cmd == nil then
         -- No command given and no cache, prompt for command and
         -- callback to execute
-        log("no command, callback after set_cmd")
-        return M.set_cmd(nil, function()
+        if M.config.use_cache_file then
+            log("open cache")
+            cache.open(
+                M._cache,
+                M.config.cache_window_opts,
+                nil,
+                function(choice)
+                    log("open cache callback")
+                    M.execute(choice, opts)
+                end
+            )
+            return
+        end
+
+        log("no command")
+        M.set_cmd(nil, function()
+            log("no command callback")
             M.execute(nil, opts)
         end)
+        return
+    else
+        if M._cmd ~= cmd then
+            M.set_cmd(cmd)
+        end
     end
 
     if M._target == nil then
         -- Prompt for target and callback to execute
-        log("no target, callback after select_target")
+        log("no target")
         return M.select_target(function()
+            log("no target callback")
             M.execute(cmd, opts)
         end)
     end
@@ -101,25 +248,19 @@ function M.execute(cmd, opts)
         vim.notify(
             string.format("[yeet.nvim]: %s => %s", cmd, M._target.shortname)
         )
+    else
+        log("failed send, update target")
+        M.select_target(function()
+            log("failed send callback")
+            M.execute(cmd, opts)
+        end)
     end
-end
-
----@param input string
----@return string subcommand
----@return string? arg
-local function split_cmd(input)
-    local subcommand = string.find(input, " ")
-    if subcommand ~= nil then
-        local cmd = string.sub(input, 1, subcommand - 1)
-        local arg = string.sub(input, subcommand + 1)
-        return cmd, arg
-    end
-    return input, nil
 end
 
 local onwrite = nil
 local grp = vim.api.nvim_create_augroup("yeet", { clear = true })
 
+---Toggle autoyeeting, calls |yeet.execute| on |BufWritePost|.
 function M.toggle_post_write()
     if onwrite ~= nil then
         vim.api.nvim_del_autocmd(onwrite)
@@ -129,15 +270,14 @@ function M.toggle_post_write()
     onwrite = vim.api.nvim_create_autocmd("BufWritePost", {
         group = grp,
         pattern = "*",
-        callback = function()
-            M.execute()
-        end,
+        callback = M.execute,
     })
 end
 
---- Set current in-memory command
+---Prompts for command. Sets in-memory command which will be used for following
+---calls for |yeet.execute|. Callback can be ignored.
 ---@param cmd? string
----@param callback? function
+---@param callback? fun()
 function M.set_cmd(cmd, callback)
     log("set command:", cmd)
     if cmd ~= nil then
@@ -156,64 +296,22 @@ function M.set_cmd(cmd, callback)
         M._cmd = input
 
         if callback ~= nil then
-            log("callback")
             callback()
         end
     end)
 end
 
----@param cmd Target
-function M._set_target(cmd)
-    M._target = cmd
-    log("target now:", M._target)
-end
-
----@return Target[]
-function M._update()
-    local options = {
-        { type = "new", name = "[create new term buffer]", channel = 0 },
-    }
-    for _, v in ipairs(buffer.get_channels()) do
-        table.insert(options, v)
-    end
-    for _, v in ipairs(tmux.get_panes(M.config)) do
-        table.insert(options, v)
-    end
-
-    return options
-end
-
-local function yeetcmd(args)
-    local subcmd, arg = split_cmd(args.args)
-    if subcmd == "" or subcmd == "execute" then
-        if arg ~= nil then
-            error("subcommand execute does not accept arguments")
-        end
-        M.execute()
-    elseif subcmd == "select_target" then
-        if arg ~= nil then
-            error("subcommand select_target does not accept arguments")
-            return
-        end
-        M.select_target()
-    elseif subcmd == "set_cmd" then
-        M.set_cmd(arg)
-    elseif subcmd == "toggle_post_write" then
-        if arg ~= nil then
-            error("subcommand toggle_post_write does not accept arguments")
-            return
-        end
-        M.toggle_post_write()
-    end
-end
-
-function M._create_user_command()
-    vim.api.nvim_create_user_command("Yeet", yeetcmd, {
-        nargs = "?",
-        complete = function()
-            return { "select_target", "execute", "set_cmd", "toggle_post_write" }
-        end,
-    })
+---List commands stored in cache file. File will be opened to a new window with
+---configuration defined in setup options. Optional filepath can be given to
+---bypass what was given in setup.
+---@param filepath? string
+function M.list_cmd(filepath)
+    cache.open(
+        filepath or M._cache,
+        M.config.cache_window_opts,
+        M._cmd,
+        M.execute
+    )
 end
 
 return M

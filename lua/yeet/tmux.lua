@@ -1,5 +1,12 @@
 local log = require("yeet.dev")
 
+---@class Target
+---@field type string
+---@field channel integer
+---@field buffer? integer
+---@field name string
+---@field shortname string
+
 local M = {}
 
 ---@param cmd string
@@ -52,7 +59,7 @@ end
 ---Use send-keys to send command to tmux pane.
 ---@param target Target
 ---@param cmd string
----@param opts YeetConfig
+---@param opts Config
 ---@return boolean ok
 function M.send(target, cmd, opts)
     -- Scrolling logs in other pane puts tmux in copy mode, which blocks
@@ -89,7 +96,7 @@ local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
     .. "#{?pane_active,(active),}}"
 
 ---@return Target[]
----@param opts YeetConfig
+---@param opts Config
 function M.get_panes(opts)
     log("update targets")
 
