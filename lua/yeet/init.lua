@@ -120,7 +120,8 @@ end
 ---@return Target[]
 local function refresh_targets()
     local options = {
-        { type = "new", name = "[create new term buffer]", channel = 0 },
+        { type = "new_term", name = "[create new term buffer]", channel = 0 },
+        { type = "new_tmux", name = "[create new tmux pane]", channel = 0 },
     }
     for _, v in ipairs(buffer.get_channels()) do
         table.insert(options, v)
@@ -156,8 +157,10 @@ function M.select_target(callback)
         end
         log("selection:", choice)
 
-        if choice.type == "new" then
+        if choice.type == "new_term" then
             set_target(buffer.new())
+        elseif choice.type == "new_tmux" then
+            set_target(tmux.new())
         else
             log("_set_target", choice)
             set_target(choice)

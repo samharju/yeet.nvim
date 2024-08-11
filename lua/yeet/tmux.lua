@@ -104,6 +104,27 @@ local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
     .. "#{?pane_at_left,left,#{?pane_at_right,right,}} "
     .. "#{?pane_active,(active),}}"
 
+---Create new tmux pane in vertical split.
+---@return Target
+function M.new()
+    local target = {}
+    M._job("tmux split-window -dhPF '#D'", function(_, data, _)
+        for _, line in ipairs(data) do
+            local channel = line:match("^%%(%d+)")
+            if channel ~= nil then
+                ---@type Target
+                target = {
+                    channel = channel,
+                    type = "tmux",
+                    name = "[tmux] new",
+                    shortname = "[tmux] new",
+                }
+            end
+        end
+    end, false)
+    return target
+end
+
 ---@return Target[]
 ---@param opts Config
 function M.get_panes(opts)
@@ -112,15 +133,13 @@ function M.get_panes(opts)
     local temp = {}
     local cmd = string.format("tmux list-panes -a -F '%s'", listpanefmt)
 
-    local job_id = M._job(cmd, function(_, data, _)
+    M._job(cmd, function(_, data, _)
         for _, t in ipairs(data) do
             if t ~= "" then
                 table.insert(temp, t)
             end
         end
     end, opts.warn_tmux_not_running)
-
-    vim.fn.jobwait({ job_id })
 
     local current_pane = os.getenv("TMUX_PANE")
 
