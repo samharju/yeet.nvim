@@ -13,7 +13,7 @@ function M.new()
     ---@type Target
     local termtarget = {
         buffer = buf,
-        channel = vim.api.nvim_buf_get_option(buf, "channel"),
+        channel = vim.api.nvim_get_option_value("channel", { buf = buf }),
         name = vim.api.nvim_buf_get_name(buf),
         shortname = string.format("buffer: %s", buf),
         type = "buffer",
