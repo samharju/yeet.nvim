@@ -270,7 +270,9 @@ function M.toggle_post_write()
     onwrite = vim.api.nvim_create_autocmd("BufWritePost", {
         group = grp,
         pattern = "*",
-        callback = M.execute,
+        callback = function()
+            M.execute()
+        end,
     })
 end
 
