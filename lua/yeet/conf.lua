@@ -1,5 +1,6 @@
 ---@class Config
 ---@field yeet_and_run boolean
+---@field interrupt_before_yeet boolean
 ---@field clear_before_yeet boolean
 ---@field notify_on_success boolean
 ---@field warn_tmux_not_running boolean
@@ -37,6 +38,7 @@ local height = 15
 ---@type Config
 C.defaults = {
     yeet_and_run = true,
+    interrupt_before_yeet = false,
     clear_before_yeet = true,
     notify_on_success = true,
     warn_tmux_not_running = false,

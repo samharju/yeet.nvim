@@ -65,6 +65,11 @@ function M.send(target, cmd, opts)
         return false
     end
 
+    if opts.interrupt_before_yeet then
+        log("C-c")
+        vim.api.nvim_chan_send(target.channel, "\n")
+    end
+
     if opts.clear_before_yeet then
         log("clear")
         vim.api.nvim_chan_send(target.channel, "clear\n")

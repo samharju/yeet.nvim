@@ -69,6 +69,15 @@ function M.send(target, cmd, opts)
         nil,
         false
     )
+
+    if opts.interrupt_before_yeet then
+        M._job(
+            string.format("tmux send -t %%%s C-c", target.channel),
+            nil,
+            true
+        )
+    end
+
     if opts.clear_before_yeet then
         M._job(
             string.format("tmux send -t %%%s clear ENTER", target.channel),
