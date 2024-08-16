@@ -5,6 +5,7 @@ local M = {}
 ---Create new term buffer in vertical split.
 ---@return Target
 function M.new()
+    local current = vim.api.nvim_get_current_win()
     vim.cmd("vert split")
     vim.cmd.terminal()
 
@@ -21,6 +22,7 @@ function M.new()
     }
     log("created", termtarget)
 
+    vim.api.nvim_set_current_win(current)
     return termtarget
 end
 
