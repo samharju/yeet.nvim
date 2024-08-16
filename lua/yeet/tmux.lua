@@ -6,6 +6,7 @@ local log = require("yeet.dev")
 ---@field buffer? integer
 ---@field name string
 ---@field shortname string
+---@field new boolean
 
 local M = {}
 
@@ -70,25 +71,36 @@ function M.send(target, cmd, opts)
         false
     )
 
-    if opts.interrupt_before_yeet then
-        M._job(
-            string.format("tmux send -t %%%s C-c", target.channel),
-            nil,
-            true
-        )
-    end
-
-    if opts.clear_before_yeet then
-        M._job(
-            string.format("tmux send -t %%%s clear ENTER", target.channel),
-            nil,
-            true
-        )
-    end
-
     cmd = string.gsub(cmd, '"', '\\"')
-
     local c = string.format('tmux send -t %%%s "%s"', target.channel, cmd)
+
+    local _, cc_idx = string.find(cmd, "^C%-c%s*")
+    if cc_idx ~= nil then
+        c = string.format(
+            'tmux send -t %%%s "%s"',
+            target.channel,
+            cmd:sub(cc_idx + 1)
+        )
+    end
+
+    if not target.new then
+        if opts.interrupt_before_yeet or cc_idx ~= nil then
+            M._job(
+                string.format("tmux send -t %%%s C-c", target.channel),
+                nil,
+                true
+            )
+        end
+        if opts.clear_before_yeet then
+            M._job(
+                string.format("tmux send -t %%%s clear ENTER", target.channel),
+                nil,
+                true
+            )
+        end
+    else
+        target.new = false
+    end
 
     if opts.yeet_and_run then
         c = c .. " ENTER"
@@ -118,6 +130,7 @@ function M.new()
                     type = "tmux",
                     name = "[tmux] new",
                     shortname = "[tmux] new",
+                    new = true,
                 }
             end
         end
@@ -154,6 +167,7 @@ function M.get_panes(opts)
                 type = "tmux",
                 name = "[tmux] " .. long,
                 shortname = "[tmux] " .. short,
+                new = false,
             }
             table.insert(targets, t)
         end

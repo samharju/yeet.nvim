@@ -17,6 +17,7 @@ function M.new()
         name = vim.api.nvim_buf_get_name(buf),
         shortname = string.format("buffer: %s", buf),
         type = "buffer",
+        new = true,
     }
     log("created", termtarget)
 
@@ -38,6 +39,7 @@ function M.get_channels()
                 name = vim.api.nvim_buf_get_name(chan.buffer),
                 shortname = string.format("buffer: %s", chan.buffer),
                 buffer = chan.buffer,
+                new = false,
             }
 
             table.insert(chans, c)
@@ -65,14 +67,22 @@ function M.send(target, cmd, opts)
         return false
     end
 
-    if opts.interrupt_before_yeet then
-        log("C-c")
-        vim.api.nvim_chan_send(target.channel, "\n")
+    local _, cc_idx = string.find(cmd, "^C%-c%s*")
+    if cc_idx ~= nil then
+        cmd = cmd:sub(cc_idx + 1)
     end
 
-    if opts.clear_before_yeet then
-        log("clear")
-        vim.api.nvim_chan_send(target.channel, "clear\n")
+    if not target.new then
+        if opts.interrupt_before_yeet or cc_idx ~= nil then
+            log("C-c")
+            vim.api.nvim_chan_send(target.channel, "\n")
+        end
+        if opts.clear_before_yeet then
+            log("clear")
+            vim.api.nvim_chan_send(target.channel, "clear\n")
+        end
+    else
+        target.new = false
     end
 
     if opts.yeet_and_run then
