@@ -22,6 +22,7 @@ local M = {
 ---@class Options
 ---@field yeet_and_run? boolean Execute command immediately.
 ---@field clear_before_yeet? boolean Clear buffer before execution.
+---@field interrupt_before_yeet? boolean Hit C-c before execution.
 ---@field notify_on_success? boolean Print success notifications.
 ---@field warn_tmux_not_running? boolean Print warning message if tmux is not up.
 ---@field use_cache_file? boolean Use cache-file for persisting commands.
@@ -181,7 +182,8 @@ end
 ---
 ---If command or target needs to be changed from what was given in the first
 ---call of this function, use |yeet.select_target| for target and
----|yeet.set_cmd| or |yeet.list_cmd| for command.
+---|yeet.set_cmd| or |yeet.list_cmd| for command. Prefix command with
+---`C-c` to send interrupt before entering command.
 ---
 ---Options given are used for only this invocation, options registered
 ---in setup are not modified permanently.
@@ -191,6 +193,10 @@ end
 ---require("yeet").execute()
 ---require("yeet").execute("echo hello world")
 ---require("yeet").execute(nil, { clear_before_yeet = false })
+----- send interrupt before execution, local for this command
+---require("yeet").execute("C-c python run_server.py")
+----- use option version for interrupt for any command
+---require("yeet").execute(nil, { interrupt_before_yeet = true })
 ---@usage ]]
 function M.execute(cmd, opts)
     opts = vim.tbl_extend("force", M.config, opts or {})
