@@ -122,8 +122,14 @@ end
 local function refresh_targets()
     local options = {
         { type = "new_term", name = "[create new term buffer]", channel = 0 },
-        { type = "new_tmux", name = "[create new tmux pane]", channel = 0 },
     }
+
+    if os.getenv("TMUX") ~= nil then
+        table.insert(
+            options,
+            { type = "new_tmux", name = "[create new tmux pane]", channel = 0 }
+        )
+    end
     for _, v in ipairs(buffer.get_channels()) do
         table.insert(options, v)
     end
