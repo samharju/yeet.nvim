@@ -5,6 +5,7 @@
 * [Usecase](#usecase)
 * [Installation](#installation)
     * [lazy](#lazy)
+* [Docs](#docs)
 * [Configuration](#configuration)
 * [Harpoon](#harpoon)
 
@@ -14,20 +15,15 @@
 
 Plugin for running shell commands in terminal buffers or tmux panes.
 
-There are many great plugins for integrating test tools and build systems into Neovim.
-I wanted to have something super simple that works out of the box for any language or
-project by just utilizing existing shell scripts and makefiles, with absolutely zero configuration.
+There are many great plugins for integrating test tools and build systems into Neovim. I wanted to
+have something super simple that works out of the box for any language or project by just utilizing
+existing basic bash commands, shell scripts and makefiles, with absolutely zero configuration.
+Just open a menu, write command, execute somewhere. It's a bonus to have project local command
+history also available when needed.
 
-Yeet sends the command provided to whatever terminal buffer or
-tmux pane selected as target. There is no feedback loop, so indication of
-success or failure of given task is not given. After initial command/target
-selection just keep hammering `:Yeet` or your prefered keymap.
-
-![image](https://github.com/samharju/yeet.nvim/assets/35364923/0a21786e-9506-4644-b628-8d57cebcf747)
-
-![image](https://github.com/samharju/yeet.nvim/assets/35364923/8a63b72d-c39e-48c1-92df-5ba97eb17a3c)
-
-![image](https://github.com/samharju/yeet.nvim/assets/35364923/e6b2f039-79c8-4207-b8d0-3f3c6629b141)
+Yeet sends the command provided to whatever terminal buffer or tmux pane selected as target. There
+is no feedback loop, so indication of success or failure of given task is not given. After initial
+command/target selection just keep hammering `:Yeet` or your preferred keymap.
 
 ## Installation
 
@@ -44,6 +40,10 @@ selection just keep hammering `:Yeet` or your prefered keymap.
 }
 ```
 
+## Docs
+
+`:h yeet.nvim`
+
 ## Configuration
 
 Default options:
@@ -53,6 +53,8 @@ Default options:
     opts = {
         -- Send <CR> to channel after command for immediate execution.
         yeet_and_run = true,
+        -- Send C-c before execution
+        interrupt_before_yeet = false,
         -- Send 'clear<CR>' to channel before command for clean output.
         clear_before_yeet = true,
         -- Enable notify for yeets. Success notifications may be a little
@@ -60,6 +62,22 @@ Default options:
         notify_on_success = true,
         -- Print warning if pane list could not be fetched, e.g. tmux not running.
         warn_tmux_not_running = false,
+        -- Resolver for cache file
+        cache = function()
+           -- resolves project path and uses stdpath("cache")/yeet/<project>, see :h yeet
+        end
+        -- Use cache.
+        cache = true
+        -- Window options for cache float
+        cache_window_opts = {
+            relative = "editor",
+            row = (vim.o.lines - height) * 0.5,
+            col = (vim.o.columns - width) * 0.5,
+            width = width,
+            height = height,
+            border = "single",
+            title = "Yeet",
+        },
     }
 }
 ```
@@ -70,12 +88,13 @@ Example keymappings:
 {
     keys = {
         {
-            -- Open target selection
-            "<leader>yt", function() require("yeet").select_target() end,
+            -- Pop command cache open
+            "<leader><BS>",
+            function() require("yeet").list_cmd() end,
         },
         {
-            -- Update yeeted command
-            "<leader>yc", function() require("yeet").set_cmd() end,
+            -- Open target selection
+            "<leader>yt", function() require("yeet").select_target() end,
         },
         {
             -- Douple tap \ to yeet at something
@@ -86,9 +105,9 @@ Example keymappings:
             "<leader>yo", function() require("yeet").toggle_post_write() end,
         },
         {
-            -- Run command without clearing terminal
+            -- Run command without clearing terminal, send C-c
             "<leader>\\", function()
-                require("yeet").execute(nil, { clear_before_yeet = false})
+                require("yeet").execute(nil, { clear_before_yeet = false, interrupt_before_yeet = true })
             end,
         }
     }
@@ -97,19 +116,27 @@ Example keymappings:
 ```
 
 Options can be passed directly to `Yeet.execute` for overriding something for specific command.
+If you often need the same chore command in many projects, you can create a keymap with fixed
+command:
 
 ```lua
-require('yeet').execute("pytest -v --durations=5", { clear_before_yeet = false })
+vim.keymap.set("n", "<leader>yv", function()
+    require("yeet").execute(
+        "source venv/bin/execute",
+        { clear_before_yeet = false }
+    )
+end)
 ```
 
 ## Harpoon
 
-Implementing some kind of Yeet-specific logic for keeping track of project
-local commands, syncing them on disk etc. extra hustle is not on the feature list.
-I use the newly reworked [harpoon2](https://github.com/ThePrimeagen/harpoon) for persistence
-backend for my commands. Harpoon caches project specific named lists, so you can just open
-the list, have it run `Yeet.execute` on select and then just keep repeating that latest
-command with your preferred keymap for `Yeet.execute`.
+Implementing some kind of Yeet-specific logic for keeping track of project local commands, syncing
+them on disk etc. extra hustle wasn't earlier on the feature list. I used the newly reworked
+[harpoon2](https://github.com/ThePrimeagen/harpoon) for persistence backend for my commands. Harpoon
+caches project specific named lists, so you can just open the list, have it run `Yeet.execute` on
+select and then just keep repeating that latest command with your preferred keymap for
+`Yeet.execute`. You can also use numerous list customization features, list local keymaps etc with
+harpoon.
 
 ```lua
 {
