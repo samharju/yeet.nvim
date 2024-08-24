@@ -13,6 +13,8 @@
 
 ## Usecase
 
+![tmux2](https://github.com/user-attachments/assets/51e8bcf9-2e68-40f6-a88a-f5f9cde5f42f)
+
 Plugin for running shell commands in terminal buffers or tmux panes.
 
 There are many great plugins for integrating test tools and build systems into Neovim. I wanted to
@@ -24,6 +26,14 @@ history also available when needed.
 Yeet sends the command provided to whatever terminal buffer or tmux pane selected as target. There
 is no feedback loop, so indication of success or failure of given task is not given. After initial
 command/target selection just keep hammering `:Yeet` or your preferred keymap.
+
+Demo:
+
+
+
+https://github.com/user-attachments/assets/de628d05-d314-4ba5-a948-a6f6bd8db646
+
+
 
 ## Installation
 
@@ -42,7 +52,7 @@ command/target selection just keep hammering `:Yeet` or your preferred keymap.
 
 ## Docs
 
-`:h yeet.nvim`
+`:h yeet.nvim` or [doc/yeet.txt](doc/yeet.txt)
 
 ## Configuration
 
@@ -122,7 +132,7 @@ command:
 ```lua
 vim.keymap.set("n", "<leader>yv", function()
     require("yeet").execute(
-        "source venv/bin/execute",
+        "source venv/bin/activate",
         { clear_before_yeet = false }
     )
 end)
@@ -167,4 +177,3 @@ harpoon.
 
 ```
 
-![image](https://github.com/samharju/yeet.nvim/assets/35364923/48d0df0b-0b85-4f6a-9340-e06dad0f08cb)
