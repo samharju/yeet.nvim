@@ -45,6 +45,7 @@ https://github.com/user-attachments/assets/de628d05-d314-4ba5-a948-a6f6bd8db646
     dependencies = {
         "stevearc/dressing.nvim" -- optional, provides sane UX
     },
+    version = "*", -- update only on releases
     cmd = 'Yeet',
     opts = {},
 }
