@@ -13,7 +13,7 @@ Options                                                           *yeet.Options*
     Fields: ~
         {yeet_and_run?}           (boolean)       Execute command immediately.
         {clear_before_yeet?}      (boolean)       Clear buffer before execution.
-        {interrupt_before_yeet}   (boolean)       Hit C-c before execution.
+        {interrupt_before_yeet?}  (boolean)       Hit C-c before execution.
         {notify_on_success?}      (boolean)       Print success notifications.
         {warn_tmux_not_running?}  (boolean)       Print warning message if tmux is not up.
         {use_cache_file?}         (boolean)       Use cache-file for persisting commands.
