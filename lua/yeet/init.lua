@@ -324,6 +324,14 @@ end
 ---List commands stored in cache file. File will be opened to a new window with
 ---configuration defined in setup options. Optional filepath can be given to
 ---bypass what was given in setup.
+---
+---Remaps:
+---   Normal mode:
+---     <CR> -> Calls |yeet.execute| with current line as command.
+---
+---   Visual mode:
+---     <CR> -> Calls |yeet.execute| with visual-line selection as
+---             command. Same behaviour as |yeet.execute_selection|.
 ---@param filepath? string
 function M.list_cmd(filepath)
     cache.open(
@@ -334,6 +342,12 @@ function M.list_cmd(filepath)
     )
 end
 
+---Grab current or last visual selection and call |yeet.execute| with
+---provided options.
+---
+---Does not support partial ranges, uses all the lines that are in the scope
+---of the selection. Removes empty lines and indent common to all lines, making
+---it behave nice when sending code snippets to a repl.
 ---@param opts? Options
 function M.execute_selection(opts)
     local out = get_selection()

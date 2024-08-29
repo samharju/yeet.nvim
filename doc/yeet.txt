@@ -64,6 +64,7 @@ USER COMMAND                                                      *yeet-command*
          toggle_post_write   => |yeet.toggle_post_write|
          set_cmd             => |yeet.set_cmd|
          list_cmd            => |yeet.list_cmd|
+         execute_selection   => |yeet.execute_selection|
 
 Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 and for those calls that are not needed often enough to deserve a dedicated keymap.
@@ -132,8 +133,28 @@ M.list_cmd({filepath?})                                          *yeet.list_cmd*
     configuration defined in setup options. Optional filepath can be given to
     bypass what was given in setup.
 
+    Remaps:
+       Normal mode:
+         <CR> -> Calls |yeet.execute| with current line as command.
+
+       Visual mode:
+         <CR> -> Calls |yeet.execute| with visual-line selection as
+                 command. Same behaviour as |yeet.execute_selection|.
+
     Parameters: ~
         {filepath?}  (string)
+
+
+M.execute_selection({opts?})                            *yeet.execute_selection*
+    Grab current or last visual selection and call |yeet.execute| with
+    provided options.
+
+    Does not support partial ranges, uses all the lines that are in the scope
+    of the selection. Removes empty lines and indent common to all lines, making
+    it behave nice when sending code snippets to a repl.
+
+    Parameters: ~
+        {opts?}  (Options)
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

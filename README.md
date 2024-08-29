@@ -29,11 +29,7 @@ command/target selection just keep hammering `:Yeet` or your preferred keymap.
 
 Demo:
 
-
-
 https://github.com/user-attachments/assets/de628d05-d314-4ba5-a948-a6f6bd8db646
-
-
 
 ## Installation
 
@@ -112,7 +108,7 @@ Example keymappings:
             "\\\\", function() require("yeet").execute() end,
         },
         {
-            -- Toggle autocommand for yeeting after write.
+            -- Toggle autocommand for yeeting after write
             "<leader>yo", function() require("yeet").toggle_post_write() end,
         },
         {
@@ -120,7 +116,13 @@ Example keymappings:
             "<leader>\\", function()
                 require("yeet").execute(nil, { clear_before_yeet = false, interrupt_before_yeet = true })
             end,
-        }
+        },
+        {
+            -- Yeet visual selection. Useful sending core to a repl or running multiple commands.
+            "<leader>yv",
+                function() require("yeet").execute_selection({ clear_before_yeet = false }) end,
+            mode = { "n", "v" },
+        },
     }
 }
 
@@ -177,4 +179,3 @@ harpoon.
 }
 
 ```
-
