@@ -72,6 +72,7 @@ function M.send(target, cmd, opts)
     )
 
     cmd = string.gsub(cmd, '"', '\\"')
+    cmd = string.gsub(cmd, "%$", "\\$")
     local c = string.format('tmux send -t %%%s "%s"', target.channel, cmd)
 
     local _, cc_idx = string.find(cmd, "^C%-c%s*")
