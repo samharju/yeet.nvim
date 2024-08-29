@@ -3,6 +3,7 @@
 local buffer = require("yeet.buffer")
 local c = require("yeet.conf")
 local cache = require("yeet.cache")
+local get_selection = require("yeet.selection")
 local log = require("yeet.dev")
 local tmux = require("yeet.tmux")
 
@@ -67,6 +68,7 @@ function M.setup(opts)
         set_cmd = M.set_cmd,
         toggle_post_write = M.toggle_post_write,
         list_cmd = M.list_cmd,
+        execute_selection = M.execute_selection,
     }
 
     vim.api.nvim_create_user_command("Yeet", function(args)
@@ -102,6 +104,7 @@ end
 ---         toggle_post_write   => |yeet.toggle_post_write|
 ---         set_cmd             => |yeet.set_cmd|
 ---         list_cmd            => |yeet.list_cmd|
+---         execute_selection   => |yeet.execute_selection|
 ---
 ---Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 ---and for those calls that are not needed often enough to deserve a dedicated keymap.
@@ -329,6 +332,12 @@ function M.list_cmd(filepath)
         M._cmd,
         M.execute
     )
+end
+
+---@param opts? Options
+function M.execute_selection(opts)
+    local out = get_selection()
+    M.execute(out, opts)
 end
 
 return M
