@@ -1,4 +1,5 @@
 local log = require("yeet.dev")
+local get_selection = require("yeet.selection")
 
 M = {}
 
@@ -13,7 +14,10 @@ function M.open(path, window_opts, cmd, callback)
     vim.cmd.e(path)
     local buf = vim.api.nvim_get_current_buf()
     if cmd ~= nil then
-        vim.fn.matchadd("DiffText", cmd)
+        local lines = vim.split(cmd, "\n")
+        for _, line in ipairs(lines) do
+            vim.fn.matchadd("DiffText", vim.fn.escape(line, "\\"))
+        end
     end
 
     local function close()
@@ -38,6 +42,14 @@ function M.open(path, window_opts, cmd, callback)
         local choice = vim.api.nvim_buf_get_text(0, row, 0, row, -1, {})
         if callback ~= nil then
             callback(choice[1])
+        end
+        vim.api.nvim_win_close(win, true)
+    end, { buffer = buf })
+
+    vim.keymap.set("v", "<CR>", function()
+        local choice = get_selection()
+        if callback ~= nil and choice ~= nil then
+            callback(choice)
         end
         vim.api.nvim_win_close(win, true)
     end, { buffer = buf })
