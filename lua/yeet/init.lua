@@ -266,6 +266,8 @@ function M.execute(cmd, opts)
         vim.notify(
             string.format("[yeet.nvim]: %s => %s", cmd, M._target.shortname)
         )
+    elseif ok then
+        log("executed successfully")
     else
         log("failed send, update target")
         M.select_target(function()
