@@ -78,10 +78,10 @@ Default options:
         -- Window options for cache float
         cache_window_opts = {
             relative = "editor",
-            row = (vim.o.lines - height) * 0.5,
-            col = (vim.o.columns - width) * 0.5,
-            width = width,
-            height = height,
+            row = (vim.o.lines - 15) * 0.5,
+            col = (vim.o.columns - math.ceil(0.6 * vim.o.columns)) * 0.5,
+            width = math.ceil(0.6 * vim.o.columns),
+            height = 15,
             border = "single",
             title = "Yeet",
         },
