@@ -56,7 +56,7 @@ M.setup({opts?})                                                    *yeet.setup*
 ==============================================================================
 USER COMMAND                                                      *yeet-command*
 
-:Yeet <subcommand>
+:Yeet <subcommand?>
 
      Subcommands:
          select_target       => |yeet.select_target|
@@ -68,6 +68,7 @@ USER COMMAND                                                      *yeet-command*
 
 Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 and for those calls that are not needed often enough to deserve a dedicated keymap.
+No subcommand will default to |yeet.execute|.
 
 ==============================================================================
 API                                                                       *yeet*
