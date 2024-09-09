@@ -4,7 +4,8 @@
 
 * [Usecase](#usecase)
 * [Installation](#installation)
-    * [lazy](#lazy)
+    * [lazy.nvim](#lazynvim)
+    * [packer](#packer)
 * [Docs](#docs)
 * [Configuration](#configuration)
 * [Harpoon](#harpoon)
@@ -33,18 +34,34 @@ https://github.com/user-attachments/assets/de628d05-d314-4ba5-a948-a6f6bd8db646
 
 ## Installation
 
-### lazy
+### lazy.nvim
 
 ```lua
 {
-    'samharju/yeet.nvim',
+    "samharju/yeet.nvim",
     dependencies = {
-        "stevearc/dressing.nvim" -- optional, provides sane UX
+        "stevearc/dressing.nvim", -- optional, provides sane UX
     },
-    version = "*", -- update only on releases
-    cmd = 'Yeet',
+    version = "*", -- use the latest release, remove for master
+    cmd = "Yeet",
     opts = {},
 }
+```
+
+### packer
+
+```lua
+use({
+    "samharju/yeet.nvim",
+    requires = {
+        "stevearc/dressing.nvim", -- optional, provides sane UX
+    },
+    tag = "*", -- use the latest release, remove for master
+    cmd = "Yeet",
+    config = function()
+        require("yeet").setup({})
+    end,
+})
 ```
 
 ## Docs
@@ -133,7 +150,7 @@ If you often need the same chore command in many projects, you can create a keym
 command:
 
 ```lua
-vim.keymap.set("n", "<leader>yv", function()
+vim.keymap.set("n", "<leader>yy", function()
     require("yeet").execute(
         "source venv/bin/activate",
         { clear_before_yeet = false }
