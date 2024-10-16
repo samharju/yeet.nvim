@@ -195,8 +195,10 @@ end
 ---
 ---If command or target needs to be changed from what was given in the first
 ---call of this function, use |yeet.select_target| for target and
----|yeet.set_cmd| or |yeet.list_cmd| for command. Prefix command with
----`C-c` to send interrupt before entering command.
+---|yeet.set_cmd| or |yeet.list_cmd| for command.
+---
+---Prefix command with `C-c` to send interrupt before entering command.
+---Prefix command with `init:` to run command only if target is new.
 ---
 ---Options given are used for only this invocation, options registered
 ---in setup are not modified permanently.
@@ -252,6 +254,13 @@ function M.execute(cmd, opts)
             log("no target callback")
             M.execute(cmd, opts)
         end)
+    end
+
+    if M._target.new and M.config.use_cache_file then
+        local init_cmds = cache.get_init_commands(M._cache)
+        if init_cmds ~= "" then
+            cmd = init_cmds .. "\n" .. cmd
+        end
     end
 
     -- Command and target are always set at this point
@@ -330,6 +339,15 @@ end
 ---List commands stored in cache file. File will be opened to a new window with
 ---configuration defined in setup options. Optional filepath can be given to
 ---bypass what was given in setup.
+---
+---Commands prefixed with `init:` are considered init commands and are
+---executed automatically when target is new, before the actual command.
+---
+---Example cache:
+---
+---     init: echo "init command"
+---     init: echo "init command2"
+---     echo "main command"
 ---
 ---Remaps:
 ---   Normal mode:

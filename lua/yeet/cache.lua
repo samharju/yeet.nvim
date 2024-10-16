@@ -1,5 +1,5 @@
-local log = require("yeet.dev")
 local get_selection = require("yeet.selection")
+local log = require("yeet.dev")
 
 M = {}
 
@@ -19,6 +19,8 @@ function M.open(path, window_opts, cmd, callback)
             vim.fn.matchadd("DiffText", vim.fn.escape(line, "\\"))
         end
     end
+
+    vim.fn.matchadd("Special", "^init:")
 
     local function close()
         if vim.bo.modified then
@@ -55,4 +57,43 @@ function M.open(path, window_opts, cmd, callback)
     end, { buffer = buf })
 end
 
+---@param path string filepath for command list
+---@param init? boolean include init commands
+---@return table
+function M.read_cache(path, init)
+    local file = io.open(path, "r")
+    if file == nil then
+        return {}
+    end
+    local commands = {}
+    for line in file:lines() do
+        if init == false then
+            local _, cmd_idx = string.find(line, "^init:%s*")
+            if cmd_idx == nil then
+                table.insert(commands, line)
+            end
+        else
+            table.insert(commands, line)
+        end
+    end
+    file:close()
+    return commands
+end
+
+-- Open cache file.
+---@param path string filepath for command list
+---@return string
+function M.get_init_commands(path)
+    local commands = M.read_cache(path)
+
+    local exec = {}
+
+    for _, cmd in ipairs(commands) do
+        local _, cmd_idx = string.find(cmd, "^init:%s*")
+        if cmd_idx ~= nil then
+            table.insert(exec, cmd:sub(cmd_idx + 1))
+        end
+    end
+    return table.concat(exec, "\n")
+end
 return M
