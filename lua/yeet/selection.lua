@@ -8,9 +8,9 @@ return function()
         lines = { lines }
     end
 
-    -- drop empty lines
+    -- drop empty lines, keep last though
     for i = #lines, 1, -1 do
-        if lines[i] == "" then
+        if i ~= #lines and lines[i] == "" then
             table.remove(lines, i)
         end
     end
