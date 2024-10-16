@@ -6,7 +6,7 @@
 ---@field warn_tmux_not_running boolean
 ---@field use_cache_file boolean
 ---@field cache fun():string
----@field cache_window_opts table
+---@field cache_window_opts vim.api.keyset.win_config | fun():vim.api.keyset.win_config
 
 local log = require("yeet.dev")
 
@@ -44,15 +44,20 @@ C.defaults = {
     warn_tmux_not_running = false,
     cache = C.cachepath,
     use_cache_file = true,
-    cache_window_opts = {
-        relative = "editor",
-        row = (vim.o.lines - height) * 0.5,
-        col = (vim.o.columns - width) * 0.5,
-        width = width,
-        height = height,
-        border = "single",
-        title = "Yeet",
-    },
+    cache_window_opts = function()
+        local width = math.min(math.ceil(0.6 * vim.o.columns), 120)
+        local height = math.min(15, vim.o.lines - 4)
+
+        return {
+            relative = "editor",
+            row = (vim.o.lines - height) * 0.5,
+            col = (vim.o.columns - width) * 0.5,
+            width = width,
+            height = height,
+            border = "single",
+            title = "Yeet",
+        }
+    end,
 }
 
 return C

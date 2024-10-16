@@ -28,9 +28,10 @@ local M = {
 ---@field warn_tmux_not_running? boolean Print warning message if tmux is not up.
 ---@field use_cache_file? boolean Use cache-file for persisting commands.
 ---@field cache? fun():string Resolver for cache file.
----@field cache_window_opts? table Configuration passed to |nvim_open_win()|
+---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
 ---@see standard-path
 ---@see uv.cwd
+---@see vim.api.keyset.win_config
 
 ---@brief [[
 ---Default cache solution is to create a cwd-specific file in

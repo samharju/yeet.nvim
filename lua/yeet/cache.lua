@@ -5,12 +5,18 @@ M = {}
 
 -- Open cache file.
 ---@param path string filepath for command list
----@param window_opts vim.api.keyset.win_config
+---@param window_opts vim.api.keyset.win_config | fun():vim.api.keyset.win_config
 ---@param cmd? string
 ---@param callback? fun(cmd:string) callback to call with selected command as input
 function M.open(path, window_opts, cmd, callback)
+    local win_opts = {}
+    if type(window_opts) == "function" then
+        win_opts = window_opts()
+    else
+        win_opts = window_opts
+    end
     log(path, cmd)
-    local win = vim.api.nvim_open_win(0, true, window_opts)
+    local win = vim.api.nvim_open_win(0, true, win_opts)
     vim.cmd.e(path)
     local buf = vim.api.nvim_get_current_buf()
     if cmd ~= nil then
