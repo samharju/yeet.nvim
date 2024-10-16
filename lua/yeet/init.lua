@@ -310,9 +310,14 @@ function M.toggle_post_write()
 end
 
 ---Prompts for command. Sets in-memory command which will be used for following
----calls for |yeet.execute|. Callback can be ignored.
+---calls for |yeet.execute|. Callback is called after setting the command.
 ---@param cmd? string
 ---@param callback? fun()
+---@usage [[
+---require("yeet").set_cmd()
+---require("yeet").set_cmd("echo hello world")
+---require("yeet").set_cmd(nil, require("yeet").execute)
+---@usage ]]
 function M.set_cmd(cmd, callback)
     log("set command:", cmd)
     if cmd ~= nil then
@@ -357,6 +362,11 @@ end
 ---     <CR> -> Calls |yeet.execute| with visual-line selection as
 ---             command. Same behaviour as |yeet.execute_selection|.
 ---@param filepath? string
+---@usage [[
+---require("yeet").list_cmd()
+---require("yeet").list_cmd(".yeet")
+---require("yeet").list_cmd("~/some/dir/commands.txt")
+---@usage ]]
 function M.list_cmd(filepath)
     cache.open(
         filepath or M._cache,

@@ -124,11 +124,18 @@ M.toggle_post_write()                                   *yeet.toggle_post_write*
 
 M.set_cmd({cmd?}, {callback?})                                    *yeet.set_cmd*
     Prompts for command. Sets in-memory command which will be used for following
-    calls for |yeet.execute|. Callback can be ignored.
+    calls for |yeet.execute|. Callback is called after setting the command.
 
     Parameters: ~
         {cmd?}       (string)
         {callback?}  (fun())
+
+    Usage: ~
+>lua
+        require("yeet").set_cmd()
+        require("yeet").set_cmd("echo hello world")
+        require("yeet").set_cmd(nil, require("yeet").execute)
+<
 
 
 M.list_cmd({filepath?})                                          *yeet.list_cmd*
@@ -155,6 +162,13 @@ M.list_cmd({filepath?})                                          *yeet.list_cmd*
 
     Parameters: ~
         {filepath?}  (string)
+
+    Usage: ~
+>lua
+        require("yeet").list_cmd()
+        require("yeet").list_cmd(".yeet")
+        require("yeet").list_cmd("~/some/dir/commands.txt")
+<
 
 
 M.execute_selection({opts?})                            *yeet.execute_selection*
