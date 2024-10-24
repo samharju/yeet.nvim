@@ -31,52 +31,64 @@ describe("buffer target", function()
     local target = buffer.new()
     yeet._target = target
 
-    vim.api.nvim_chan_send(target.channel, "sh\n")
-    vim.api.nvim_chan_send(target.channel, "PS1=''\n")
+    vim.api.nvim_chan_send(target.channel, "bash\n")
+    vim.api.nvim_chan_send(target.channel, "PS1='$ '\n")
+    print("wait for bash")
     vim.wait(1000)
 
     before_each(function()
+        print("before_each")
         vim.api.nvim_chan_send(target.channel, "\nclear\n")
-        vim.wait(100)
+        vim.wait(250)
     end)
 
     it("yeets and runs", function()
         yeet.execute("echo hello")
-        assert_output(target, "echo hello\nhello")
+        assert_output(target, "$ echo hello\nhello\n$ ")
     end)
 
     it("yeets and does not run", function()
         yeet.execute("echo hello", { yeet_and_run = false })
-        assert_output(target, "echo hello")
+        assert_output(target, "$ echo hello")
+        yeet.execute("clear")
     end)
 
     it("escapes $variables", function()
         yeet.execute("ASD=123 && echo $ASD")
-        assert_output(target, "ASD=123 && echo $ASD\n123")
+        assert_output(target, "$ ASD=123 && echo $ASD\n123\n$ ")
     end)
 
     it("interrupts with C-c", function()
         yeet.execute("sleep 100")
         vim.wait(100)
         yeet.execute("C-c echo hello")
-        assert_output(target, "sleep 100\n^C\necho hello\nhello")
+        assert_output(
+            target,
+            "$ sleep 100\n^C\necho hello\n$ \n$ echo hello\nhello\n$ "
+        )
     end)
 
     it("interrupts with option", function()
         yeet.execute("sleep 200")
         vim.wait(100)
         yeet.execute("echo hello", { interrupt_before_yeet = true })
-        assert_output(target, "sleep 200\n^C\necho hello\nhello")
+        assert_output(
+            target,
+            "$ sleep 200\n^C\necho hello\n$ \n$ echo hello\nhello\n$ "
+        )
     end)
 
     it("accepts multiple commands sent", function()
         yeet.execute("echo 1\necho 2\necho 3")
-        assert_output(target, "echo 1\necho 2\necho 3\n1\n2\n3")
+        assert_output(target, "$ echo 1\n1\n$ echo 2\n2\n$ echo 3\n3\n$ ")
     end)
 
     it("clears", function()
         yeet.execute("echo noise")
         yeet.execute("echo 4", { clear_before_yeet = true })
-        assert_output(target, "4")
+        assert_output(target, "$ echo 4\n4\n$ ")
     end)
+
+    print("teardown")
+    vim.api.nvim_buf_delete(target.buffer, { force = true })
 end)
