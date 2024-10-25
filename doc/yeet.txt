@@ -69,7 +69,8 @@ USER COMMAND                                                      *yeet-command*
 
 Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 and for those calls that are not needed often enough to deserve a dedicated keymap.
-No subcommand will default to |yeet.execute|.
+No subcommand will default to |yeet.execute| if no range selected.
+Calling `:Yeet` for visual selection will pass range to |yeet.execute_selection|.
 
 ==============================================================================
 API                                                                       *yeet*

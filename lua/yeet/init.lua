@@ -74,9 +74,12 @@ function M.setup(opts)
 
     vim.api.nvim_create_user_command("Yeet", function(args)
         local subcmd = args.args
-        if subcmd == "" then
+        if args.range ~= 0 then
+            subcmd = "execute_selection"
+        elseif subcmd == "" then
             subcmd = "execute"
         end
+
         if subcmds[subcmd] ~= nil then
             M[subcmd]()
             return
@@ -87,6 +90,7 @@ function M.setup(opts)
         )
     end, {
         nargs = "?",
+        range = true,
         complete = function()
             local k = {}
             for key, _ in pairs(subcmds) do
@@ -112,7 +116,8 @@ end
 ---
 ---Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 ---and for those calls that are not needed often enough to deserve a dedicated keymap.
----No subcommand will default to |yeet.execute|.
+---No subcommand will default to |yeet.execute| if no range selected.
+---Calling `:Yeet` for visual selection will pass range to |yeet.execute_selection|.
 ---@brief ]]
 
 ---@mod yeet API
