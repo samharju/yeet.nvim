@@ -1,3 +1,5 @@
+---@mod yeet-conf CONF
+
 ---@class Config
 ---@field yeet_and_run boolean
 ---@field interrupt_before_yeet boolean
@@ -14,7 +16,55 @@ local cache = vim.fn.stdpath("cache") .. "/yeet"
 
 local C = {}
 
+local function escape(cachedir, project)
+    local sub = project:gsub("/", "_")
+    return vim.fn.fnameescape(cachedir .. "/" .. sub)
+end
+
+---Resolve filename for cache.
+---Fallback is used if not a git project, if no fallback given,
+---calls |yeet-conf.cachepath|.
+---@param fallback? string
+---@return string
+---@usage [[
+---require("yeet").setup({
+---    cache = require("yeet.conf").git_root
+---})
+---@usage ]]
+function C.git_root(fallback)
+    local res = vim.system(
+        { "git", "rev-parse", "--show-toplevel" },
+        { text = true }
+    )
+        :wait()
+
+    if res.code ~= 0 or res.stdout == nil then
+        return fallback or C.cachepath()
+    end
+
+    local project = res.stdout
+    assert(project ~= nil, "project root is nil")
+    project = project:sub(1, #project - 1)
+
+    local p = escape(cache, project)
+    log("using cache:", p)
+    return p
+end
+
+---Resolve filename for cache.
+---Default root is `stdpath("cache") / yeet`, filename is generated
+---from cwd.
 ---@param root? string
+---@return string
+---@usage [[
+-----Keep the builtin naming scheme for cache files, but in
+-----a different location:
+---require("yeet").setup({
+---    cache = function()
+---        return require("yeet.conf").cachepath("~/some/dir")
+---    end,
+---})
+---@usage ]]
 function C.cachepath(root)
     cache = root or cache
     cache = vim.fn.expand(cache)
@@ -26,15 +76,12 @@ function C.cachepath(root)
         return ".yeet"
     end
 
-    local sub = project:gsub("/", "_")
-    local p = vim.fn.fnameescape(cache .. "/" .. sub)
+    local p = escape(cache, project)
     log("using cache:", p)
     return p
 end
 
-local width = math.ceil(0.6 * vim.o.columns)
-local height = 15
-
+---Default configuration.
 ---@type Config
 C.defaults = {
     yeet_and_run = true,

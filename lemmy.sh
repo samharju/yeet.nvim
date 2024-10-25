@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-lemmy-help -f -c lua/yeet/init.lua | tee doc/yeet.txt
+lemmy-help -f -c lua/yeet/init.lua lua/yeet/conf.lua | tee doc/yeet.txt

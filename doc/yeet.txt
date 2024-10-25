@@ -4,6 +4,7 @@ Table of Contents                                                    *yeet.nvim*
 SETUP ····························································· |yeet-setup|
 USER COMMAND ···················································· |yeet-command|
 API ····································································· |yeet|
+CONF ······························································· |yeet-conf|
 
 ==============================================================================
 SETUP                                                               *yeet-setup*
@@ -194,6 +195,71 @@ M.setqflist({opts?})                                            *yeet.setqflist*
 
     Parameters: ~
         {opts?}  (table)
+
+
+==============================================================================
+CONF                                                                 *yeet-conf*
+
+Config                                                        *yeet-conf.Config*
+
+    Fields: ~
+        {yeet_and_run}           (boolean)
+        {interrupt_before_yeet}  (boolean)
+        {clear_before_yeet}      (boolean)
+        {notify_on_success}      (boolean)
+        {warn_tmux_not_running}  (boolean)
+        {use_cache_file}         (boolean)
+        {cache}                  (fun():string)
+        {cache_window_opts}      (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
+
+
+C.git_root({fallback?})                                     *yeet-conf.git_root*
+    Resolve filename for cache.
+    Fallback is used if not a git project, if no fallback given,
+    calls |yeet-conf.cachepath|.
+
+    Parameters: ~
+        {fallback?}  (string)
+
+    Returns: ~
+        (string)
+
+    Usage: ~
+>lua
+        require("yeet").setup({
+            cache = require("yeet.conf").git_root
+        })
+<
+
+
+C.cachepath({root?})                                       *yeet-conf.cachepath*
+    Resolve filename for cache.
+    Default root is `stdpath("cache") / yeet`, filename is generated
+    from cwd.
+
+    Parameters: ~
+        {root?}  (string)
+
+    Returns: ~
+        (string)
+
+    Usage: ~
+>lua
+        --Keep the builtin naming scheme for cache files, but in
+        --a different location:
+        require("yeet").setup({
+            cache = function()
+                return require("yeet.conf").cachepath("~/some/dir")
+            end,
+        })
+<
+
+
+C.defaults                                                          *C.defaults*
+    Default configuration.
+
+    Type: ~
+        (Config)
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
