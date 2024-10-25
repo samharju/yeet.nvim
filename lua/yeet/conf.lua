@@ -92,13 +92,34 @@ function C.cachepath(root)
     return p
 end
 
+local function check_notify_overrides()
+    -- Check some common notification handling plugins, opt out
+    -- if none available
+    --
+    if pcall(require, "noice") then
+        return true
+    end
+
+    local ok, notify = pcall(require, "notify")
+    if ok then
+        -- only if nvim-notify is used as vim.notify
+        return vim.notify == notify
+    end
+
+    if pcall(require, "fidget") then
+        -- only if fidget.nvim used as vim.notify
+        return require("fidget.notification").options.override_vim_notify
+    end
+    return false
+end
+
 ---Default configuration.
 ---@type Config
 C.defaults = {
     yeet_and_run = true,
     interrupt_before_yeet = false,
     clear_before_yeet = true,
-    notify_on_success = true,
+    notify_on_success = check_notify_overrides(),
     warn_tmux_not_running = false,
     cache = C.cachepath,
     use_cache_file = true,
