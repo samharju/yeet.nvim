@@ -273,7 +273,7 @@ function M.execute(cmd, opts)
     if M._target.new and M.config.use_cache_file then
         local init_cmds = cache.get_init_commands(M._cache)
         if init_cmds ~= "" then
-            cmd = init_cmds .. "\n" .. cmd
+            cmd = init_cmds .. c.nl .. cmd
         end
     end
 

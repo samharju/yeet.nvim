@@ -14,10 +14,21 @@ local log = require("yeet.dev")
 
 local cache = vim.fn.stdpath("cache") .. "/yeet"
 
-local C = {}
+local nl = "\n"
+local clear = "clear"
+
+if vim.fn.has("win32") == 1 then
+    nl = "\r\n"
+    clear = "cls"
+end
+
+local C = {
+    nl = nl,
+    clear = clear,
+}
 
 local function escape(cachedir, project)
-    local sub = project:gsub("/", "_")
+    local sub = project:gsub("[/\\:]", "_")
     return vim.fn.fnameescape(cachedir .. "/" .. sub)
 end
 

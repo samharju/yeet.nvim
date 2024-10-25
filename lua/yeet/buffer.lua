@@ -1,3 +1,4 @@
+local conf = require("yeet.conf")
 local log = require("yeet.dev")
 
 local M = {}
@@ -77,11 +78,11 @@ function M.send(target, cmd, opts)
     if not target.new then
         if opts.interrupt_before_yeet or cc_idx ~= nil then
             log("C-c")
-            vim.api.nvim_chan_send(target.channel, "\n")
+            vim.api.nvim_chan_send(target.channel, "" .. conf.nl)
         end
         if opts.clear_before_yeet then
             log("clear")
-            vim.api.nvim_chan_send(target.channel, "clear\n")
+            vim.api.nvim_chan_send(target.channel, conf.clear .. conf.nl)
         end
     else
         target.new = false
@@ -89,7 +90,7 @@ function M.send(target, cmd, opts)
 
     if opts.yeet_and_run then
         log("nl")
-        cmd = cmd .. "\n"
+        cmd = cmd .. conf.nl
     end
 
     log("send channel:", target.channel, "cmd:", cmd)
@@ -127,7 +128,7 @@ function M.capture_pane(target, fname, cmd)
 
     for i = from_line, #data do
         if #data[i] ~= 0 then
-            f:write(data[i] .. "\n")
+            f:write(data[i] .. conf.nl)
         end
     end
 

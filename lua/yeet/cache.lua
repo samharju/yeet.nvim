@@ -20,7 +20,7 @@ function M.open(path, window_opts, cmd, callback)
     vim.cmd.e(path)
     local buf = vim.api.nvim_get_current_buf()
     if cmd ~= nil then
-        local lines = vim.split(cmd, "\n")
+        local lines = vim.split(cmd, "\r?\n")
         for _, line in ipairs(lines) do
             vim.fn.matchadd("DiffText", vim.fn.escape(line, "\\"))
         end

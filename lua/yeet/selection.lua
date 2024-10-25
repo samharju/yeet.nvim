@@ -41,5 +41,5 @@ return function()
         lines[i] = line:sub(ws + 1)
     end
 
-    return table.concat(lines, "\n")
+    return table.concat(lines, require("yeet.conf").nl)
 end
