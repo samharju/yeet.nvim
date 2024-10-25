@@ -177,4 +177,102 @@ function M.get_panes(opts)
     return targets
 end
 
+---@param target Target
+---@param fname string
+---@param cmd string
+---@return boolean
+function M.capture_pane(target, fname, cmd)
+    log("capture_pane", target.channel, fname, cmd)
+
+    local from = "-"
+    local to = "-"
+
+    if cmd == nil then
+        local scroll_res = vim.system({
+            "tmux",
+            "display",
+            "-p",
+            "-t",
+            string.format("%%%s", target.channel),
+            "#{?scroll_position,-#{scroll_position},-0}:#{pane_height}",
+        }):wait()
+        if scroll_res.code == 0 then
+            local history, height =
+                string.match(scroll_res.stdout, "(%-%d+):(%d+)")
+            if history == nil or height == nil then
+                return false
+            end
+            local from_int = tonumber(history, 10)
+            local to_int = tonumber(history) + tonumber(height)
+
+            from = tostring(from_int)
+            to = tostring(to_int)
+        end
+    end
+
+    local res = vim.system({
+        "tmux",
+        "capture-pane",
+        "-t",
+        string.format("%%%s", target.channel),
+        "-S",
+        from,
+        "-E",
+        to,
+        "-b",
+        "yeet",
+    }):wait()
+
+    if res.code == 0 then
+        if cmd == nil then
+            res = vim.system({ "tmux", "save-buffer", "-b", "yeet", fname })
+                :wait()
+            return res.code == 0
+        end
+
+        local from_str = ""
+        for line in cmd:gmatch("[^\r\n]+") do
+            from_str = line
+            break
+        end
+
+        -- remove prefixes init: or C-c from the command
+        from_str = from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", "")
+
+        log("from_str", from_str)
+
+        res = vim.system(
+            { "tmux", "show-buffer", "-b", "yeet" },
+            { text = true }
+        )
+            :wait()
+
+        if res.code ~= 0 then
+            return false
+        end
+
+        local lineno = 0
+        local from_line = 1
+        local lines = {}
+
+        for line in res.stdout:gmatch("[^\r\n]+") do
+            table.insert(lines, line)
+            lineno = lineno + 1
+            if line:find(from_str, 0, true) then
+                from_line = lineno
+            end
+        end
+
+        local f = io.open(fname, "w+")
+        if f == nil then
+            return false
+        end
+        for i = from_line, #lines do
+            f:write(lines[i] .. "\n")
+        end
+        local ok = f:close()
+        return ok == true
+    end
+    return false
+end
 return M

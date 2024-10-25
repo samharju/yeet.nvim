@@ -97,4 +97,42 @@ function M.send(target, cmd, opts)
     return true
 end
 
+---@param target Target
+---@param fname string
+---@param cmd string
+---@return boolean
+function M.capture_pane(target, fname, cmd)
+    local data = vim.api.nvim_buf_get_lines(target.buffer, 0, -1, false)
+
+    local from_str = ""
+    for line in cmd:gmatch("[^\r\n]+") do
+        from_str = line
+        break
+    end
+
+    -- remove prefixes init: or C-c from the command
+    from_str = from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", "")
+
+    local from_line = 1
+    for lineno, line in ipairs(data) do
+        if line:find(from_str, 0, true) then
+            from_line = lineno
+        end
+    end
+
+    local f = io.open(fname, "w+")
+    if f == nil then
+        return false
+    end
+
+    for i = from_line, #data do
+        if #data[i] ~= 0 then
+            f:write(data[i] .. "\n")
+        end
+    end
+
+    local ok = f:close()
+    return ok == true
+end
+
 return M

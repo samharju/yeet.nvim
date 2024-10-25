@@ -161,9 +161,17 @@ function M.select_target(callback)
     local targets = refresh_targets()
 
     log("updated targets:", targets)
+    local prompt = ""
+    if M._cmd == nil then
+        prompt = "Select target:"
+    elseif #M._cmd > 20 then
+        prompt = string.format("Yeet '%s...' to:", string.sub(M._cmd, 1, 17))
+    else
+        prompt = string.format("Yeet '%s' to:", M._cmd)
+    end
 
     vim.ui.select(targets, {
-        prompt = string.format("Yeet '%s' to:", M._cmd),
+        prompt = prompt,
         format_item = function(item)
             if M._target ~= nil and (item.channel == M._target.channel) then
                 return ">> " .. item.name
@@ -392,6 +400,56 @@ end
 function M.execute_selection(opts)
     local out = get_selection()
     M.execute(out, opts)
+end
+
+---Parse output of last yeet with current |errorformat|.
+---Accepts a table with two keys:
+---
+---   open      (boolean)   Open quickfixlist (default: false)
+---   errorfile (string)    Temporary file for saving output (default: /tmp/yeeterr)
+---@param opts? table
+function M.setqflist(opts)
+    local open = true
+    local errorfile = "/tmp/yeeterr"
+    if opts ~= nil then
+        open = opts.open == true
+        errorfile = opts.errorfile or errorfile
+    end
+
+    if M._target == nil then
+        M.select_target(function()
+            M.setqflist(opts)
+        end)
+        return
+    end
+
+    if M._target.type == "tmux" then
+        local ok = tmux.capture_pane(M._target, errorfile, M._cmd)
+        if not ok then
+            vim.notify(
+                "[yeet.nvim] failed to capture target",
+                vim.log.levels.ERROR
+            )
+            return
+        end
+    end
+
+    if M._target.type == "buffer" then
+        local ok = buffer.capture_pane(M._target, errorfile, M._cmd)
+        if not ok then
+            vim.notify(
+                "[yeet.nvim] failed to capture target",
+                vim.log.levels.ERROR
+            )
+            return
+        end
+    end
+
+    vim.cmd("silent cgetfile " .. vim.fn.fnameescape(errorfile))
+    vim.cmd("call setqflist([], 'a', { 'title': 'errors [yeet.nvim]' })")
+    if open then
+        vim.cmd.copen()
+    end
 end
 
 return M
