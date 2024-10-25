@@ -8,12 +8,22 @@ return function()
         lines = { lines }
     end
 
-    -- drop empty lines, keep last though
-    for i = #lines, 1, -1 do
-        if i ~= #lines and lines[i] == "" then
-            table.remove(lines, i)
+    if start[2] == finish[2] then
+        lines[1] = lines[1]:sub(start[3], finish[3])
+    else
+        lines[1] = lines[1]:sub(start[3])
+        lines[#lines] = lines[#lines]:sub(1, finish[3])
+
+        -- drop empty lines,
+        -- but keep last for more consistent evaluation
+        -- of snippets
+        for i = #lines, 1, -1 do
+            if i ~= #lines and lines[i] == "" then
+                table.remove(lines, i)
+            end
         end
     end
+
     if #lines == 0 then
         return
     end
