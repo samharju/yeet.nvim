@@ -192,6 +192,8 @@ function M.select_target(callback)
         else
             log("_set_target", choice)
             set_target(choice)
+            -- no init commands for existing shell
+            M._target.new = false
         end
 
         if callback ~= nil then
@@ -212,7 +214,8 @@ end
 ---|yeet.set_cmd| or |yeet.list_cmd| for command.
 ---
 ---Prefix command with `C-c` to send interrupt before entering command.
----Prefix command with `init:` to run command only if target is new.
+---Prefix command with `init:` to run command only if target is newly created
+---from target selection prompt.
 ---
 ---Options given are used for only this invocation, options registered
 ---in setup are not modified permanently.
