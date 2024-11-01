@@ -19,6 +19,7 @@ function M.open(path, window_opts, cmd, callback)
     local win = vim.api.nvim_open_win(0, true, win_opts)
     vim.cmd.e(path)
     local buf = vim.api.nvim_get_current_buf()
+    vim.api.nvim_set_option_value("filetype", "yeet-cache", { buf = buf })
     if cmd ~= nil then
         local lines = vim.split(cmd, "\r?\n")
         for _, line in ipairs(lines) do
