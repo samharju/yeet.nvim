@@ -86,6 +86,12 @@ Default options:
         notify_on_success = true,
         -- Print warning if pane list could not be fetched, e.g. tmux not running.
         warn_tmux_not_running = false,
+        -- Retries the last used target if the target is unavailable (e.g., tmux pane closed). 
+        -- Useful for maintaining workflow without re-selecting the target manually.
+        -- Works with: term buffers, tmux panes, tmux windows
+        retry_last_target_on_failure = false,
+        -- Hide neovim term buffers in `yeet.select_target`
+        hide_term_buffers = false,
         -- Resolver for cache file
         cache = function()
            -- resolves project path and uses stdpath("cache")/yeet/<project>, see :h yeet

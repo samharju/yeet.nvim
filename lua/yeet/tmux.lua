@@ -119,7 +119,7 @@ local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
 
 ---Create new tmux pane in vertical split.
 ---@return Target
-function M.new()
+function M.new_pane()
     local target = {}
     M._job("tmux split-window -dhPF '#D'", function(_, data, _)
         for _, line in ipairs(data) do
@@ -129,8 +129,29 @@ function M.new()
                 target = {
                     channel = channel,
                     type = "tmux",
-                    name = "[tmux] new",
-                    shortname = "[tmux] new",
+                    name = "[tmux] new pane",
+                    shortname = "[tmux] newp",
+                    new = true,
+                }
+            end
+        end
+    end, false)
+    return target
+end
+
+-- Create new tmux window in the current session
+function M.new_window()
+    local target = {}
+    M._job("tmux new-window -dPF '#D'", function(_, data, _)
+        for _, line in ipairs(data) do
+            local channel = line:match("^%%(%d+)")
+            if channel ~= nil then
+                ---@type Target
+                target = {
+                    channel = channel,
+                    type = "tmux",
+                    name = "[tmux] new window",
+                    shortname = "[tmux] neww",
                     new = true,
                 }
             end
