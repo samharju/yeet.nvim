@@ -26,8 +26,8 @@ local M = {
 ---@field interrupt_before_yeet? boolean Hit C-c before execution.
 ---@field notify_on_success? boolean Print success notifications.
 ---@field warn_tmux_not_running? boolean Print warning message if tmux is not up.
+---@field retry_last_target_on_failure? boolean Retries last target in case of failure. This only works for "new buffer term", "new tmux pane", "new tmux window"
 ---@field hide_term_buffers? boolean Hide neovim terminal buffers in `yeet.select_target`
----@field default_target? string Define a default target ("tmuxpane", "tmuxwindow")
 ---@field use_cache_file? boolean Use cache-file for persisting commands.
 ---@field cache? fun():string Resolver for cache file.
 ---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
@@ -298,8 +298,28 @@ function M.execute(cmd, opts)
 
     if M._target.type == "buffer" then
         ok = buffer.send(M._target, cmd, opts)
+
+        -- probably target was closed
+        -- so we try creating a new instance of the last target type
+        if not ok and M.config.retry_last_target_on_failure then
+            log("failed send, trying with last target")
+            set_target(buffer.new())
+            ok = buffer.send(M._target, cmd, opts)
+        end
     elseif M._target.type == "tmux" then
         ok = tmux.send(M._target, cmd, opts)
+
+        -- probably target was closed
+        -- so we try creating a new instance of the last target type
+        if not ok and M.config.retry_last_target_on_failure then
+            log("failed send, trying with last target")
+            if M._target.shortname == "[tmux] newp" then
+                set_target(tmux.new_pane())
+            elseif M._target.shortname == "[tmux] neww" then
+                set_target(tmux.new_window())
+            end
+            ok = tmux.send(M._target, cmd, opts)
+        end
     end
 
     log("execute", cmd, "to", M._target.name, "ok:", ok)
