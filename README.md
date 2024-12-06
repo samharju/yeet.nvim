@@ -91,7 +91,7 @@ Default options:
            -- resolves project path and uses stdpath("cache")/yeet/<project>, see :h yeet
         end
         -- Use cache.
-        cache = true
+        use_cache_file = true,
         -- Window options for cache float
         cache_window_opts = {
             relative = "editor",
