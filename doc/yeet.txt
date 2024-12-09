@@ -12,14 +12,16 @@ SETUP                                                               *yeet-setup*
 Options                                                           *yeet.Options*
 
     Fields: ~
-        {yeet_and_run?}           (boolean)            Execute command immediately.
-        {clear_before_yeet?}      (boolean)            Clear buffer before execution.
-        {interrupt_before_yeet?}  (boolean)            Hit C-c before execution.
-        {notify_on_success?}      (boolean)            Print success notifications.
-        {warn_tmux_not_running?}  (boolean)            Print warning message if tmux is not up.
-        {use_cache_file?}         (boolean)            Use cache-file for persisting commands.
-        {cache?}                  (fun():string)       Resolver for cache file.
-        {cache_window_opts?}      (table|fun():table)  win_config passed to |nvim_open_win()|
+        {yeet_and_run?}                  (boolean)            Execute command immediately.
+        {clear_before_yeet?}             (boolean)            Clear buffer before execution.
+        {interrupt_before_yeet?}         (boolean)            Hit C-c before execution.
+        {notify_on_success?}             (boolean)            Print success notifications.
+        {warn_tmux_not_running?}         (boolean)            Print warning message if tmux is not up.
+        {retry_last_target_on_failure?}  (boolean)            Retries last target in case of failure. This only works for "new buffer term", "new tmux pane", "new tmux window"
+        {hide_term_buffers?}             (boolean)            Hide neovim terminal buffers in `yeet.select_target`
+        {use_cache_file?}                (boolean)            Use cache-file for persisting commands.
+        {cache?}                         (fun():string)       Resolver for cache file.
+        {cache_window_opts?}             (table|fun():table)  win_config passed to |nvim_open_win()|
 
     See: ~
         |standard-path|
@@ -100,7 +102,8 @@ M.execute({cmd?}, {opts?})                                        *yeet.execute*
     |yeet.set_cmd| or |yeet.list_cmd| for command.
 
     Prefix command with `C-c` to send interrupt before entering command.
-    Prefix command with `init:` to run command only if target is new.
+    Prefix command with `init:` to run command only if target is newly created
+    from target selection prompt.
 
     Options given are used for only this invocation, options registered
     in setup are not modified permanently.
@@ -203,14 +206,16 @@ CONF                                                                 *yeet-conf*
 Config                                                        *yeet-conf.Config*
 
     Fields: ~
-        {yeet_and_run}           (boolean)
-        {interrupt_before_yeet}  (boolean)
-        {clear_before_yeet}      (boolean)
-        {notify_on_success}      (boolean)
-        {warn_tmux_not_running}  (boolean)
-        {use_cache_file}         (boolean)
-        {cache}                  (fun():string)
-        {cache_window_opts}      (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
+        {yeet_and_run}                  (boolean)
+        {interrupt_before_yeet}         (boolean)
+        {clear_before_yeet}             (boolean)
+        {notify_on_success}             (boolean)
+        {warn_tmux_not_running}         (boolean)
+        {hide_term_buffers}             (boolean)
+        {retry_last_target_on_failure}  (boolean)
+        {use_cache_file}                (boolean)
+        {cache}                         (fun():string)
+        {cache_window_opts}             (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
 
 
 C.git_root({fallback?})                                     *yeet-conf.git_root*

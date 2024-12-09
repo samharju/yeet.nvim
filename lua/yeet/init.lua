@@ -26,6 +26,8 @@ local M = {
 ---@field interrupt_before_yeet? boolean Hit C-c before execution.
 ---@field notify_on_success? boolean Print success notifications.
 ---@field warn_tmux_not_running? boolean Print warning message if tmux is not up.
+---@field retry_last_target_on_failure? boolean Retries last target in case of failure. This only works for "new buffer term", "new tmux pane", "new tmux window"
+---@field hide_term_buffers? boolean Hide neovim terminal buffers in `yeet.select_target`
 ---@field use_cache_file? boolean Use cache-file for persisting commands.
 ---@field cache? fun():string Resolver for cache file.
 ---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
@@ -133,14 +135,21 @@ end
 
 ---@return Target[]
 local function refresh_targets()
-    local options = {
-        { type = "new_term", name = "[create new term buffer]", channel = 0 },
-    }
+    local options = {}
+
+    if not M.config.hide_term_buffers then
+        table.insert(options, { type = "new_term", name = "[create new term buffer]", channel = 0 })
+    end
 
     if os.getenv("TMUX") ~= nil then
         table.insert(
             options,
-            { type = "new_tmux", name = "[create new tmux pane]", channel = 0 }
+            { type = "new_tmux_pane", name = "[create new tmux pane]", channel = 0 }
+        )
+
+        table.insert(
+            options,
+            { type = "new_tmux_window", name = "[create new tmux window]", channel = 0 }
         )
     end
     for _, v in ipairs(buffer.get_channels()) do
@@ -187,8 +196,10 @@ function M.select_target(callback)
 
         if choice.type == "new_term" then
             set_target(buffer.new())
-        elseif choice.type == "new_tmux" then
-            set_target(tmux.new())
+        elseif choice.type == "new_tmux_pane" then
+            set_target(tmux.new_pane())
+        elseif choice.type == "new_tmux_window" then
+            set_target(tmux.new_window())
         else
             log("_set_target", choice)
             set_target(choice)
@@ -287,8 +298,28 @@ function M.execute(cmd, opts)
 
     if M._target.type == "buffer" then
         ok = buffer.send(M._target, cmd, opts)
+
+        -- probably target was closed
+        -- so we try creating a new instance of the last target type
+        if not ok and M.config.retry_last_target_on_failure then
+            log("failed send, trying with last target")
+            set_target(buffer.new())
+            ok = buffer.send(M._target, cmd, opts)
+        end
     elseif M._target.type == "tmux" then
         ok = tmux.send(M._target, cmd, opts)
+
+        -- probably target was closed
+        -- so we try creating a new instance of the last target type
+        if not ok and M.config.retry_last_target_on_failure then
+            log("failed send, trying with last target")
+            if M._target.shortname == "[tmux] newp" then
+                set_target(tmux.new_pane())
+            elseif M._target.shortname == "[tmux] neww" then
+                set_target(tmux.new_window())
+            end
+            ok = tmux.send(M._target, cmd, opts)
+        end
     end
 
     log("execute", cmd, "to", M._target.name, "ok:", ok)

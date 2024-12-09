@@ -14,7 +14,7 @@ yeet.setup({
 
 describe("tmux target", function()
     local tmux = require("yeet.tmux")
-    local target = tmux.new()
+    local target = tmux.new_pane()
     yeet._target = target
 
     vim.system({
