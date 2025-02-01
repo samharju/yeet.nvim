@@ -72,6 +72,7 @@ function M.setup(opts)
         toggle_post_write = M.toggle_post_write,
         list_cmd = M.list_cmd,
         execute_selection = M.execute_selection,
+        setqflist = M.setqflist,
     }
 
     vim.api.nvim_create_user_command("Yeet", function(args)
@@ -115,6 +116,7 @@ end
 ---         set_cmd             => |yeet.set_cmd|
 ---         list_cmd            => |yeet.list_cmd|
 ---         execute_selection   => |yeet.execute_selection|
+---         setqflist           => |yeet.setqflist|
 ---
 ---Yeet is a wrapper for |yeet| api mostly for trying out the api functionality
 ---and for those calls that are not needed often enough to deserve a dedicated keymap.
