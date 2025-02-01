@@ -252,13 +252,14 @@ function M.capture_pane(target, fname, cmd)
         end
 
         local from_str = ""
-        for line in cmd:gmatch("[^\r\n]+") do
+        for line in cmd:gmatch("[^\r\n\\]+") do
             from_str = line
             break
         end
 
-        -- remove prefixes init: or C-c from the command
-        from_str = from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", "")
+        -- remove prefixes init: or C-c from the command, trailing whitespace
+        from_str =
+            from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", ""):gsub("%s*$", "")
 
         log("from_str", from_str)
 
@@ -272,15 +273,13 @@ function M.capture_pane(target, fname, cmd)
             return false
         end
 
-        local lineno = 0
         local from_line = 1
         local lines = {}
 
-        for line in res.stdout:gmatch("[^\r\n]+") do
+        for line in res.stdout:gmatch("[^\r\n\\]+") do
             table.insert(lines, line)
-            lineno = lineno + 1
             if line:find(from_str, 0, true) then
-                from_line = lineno
+                from_line = #lines
             end
         end
 

@@ -106,13 +106,14 @@ function M.capture_pane(target, fname, cmd)
     local data = vim.api.nvim_buf_get_lines(target.buffer, 0, -1, false)
 
     local from_str = ""
-    for line in cmd:gmatch("[^\r\n]+") do
+    for line in cmd:gmatch("[^\r\n\\]+") do
         from_str = line
         break
     end
 
-    -- remove prefixes init: or C-c from the command
-    from_str = from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", "")
+    -- remove prefixes init: or C-c from the command, trailing whitespace
+    from_str =
+        from_str:gsub("^init:%s*", ""):gsub("^C%-c%s*", ""):gsub("%s*$", "")
 
     local from_line = 1
     for lineno, line in ipairs(data) do
