@@ -8,6 +8,9 @@ return function()
         lines = { lines }
     end
 
+    local trailing_nl = 0
+    local trailing = true
+
     if start[2] == finish[2] then
         lines[1] = lines[1]:sub(start[3], finish[3])
     else
@@ -15,17 +18,18 @@ return function()
         lines[#lines] = lines[#lines]:sub(1, finish[3])
 
         -- drop empty lines,
-        -- but keep last for more consistent evaluation
+        -- but keep trailing for more consistent evaluation
         -- of snippets
         for i = #lines, 1, -1 do
-            if i ~= #lines and lines[i] == "" then
+            if lines[i] == "" then
+                if trailing then
+                    trailing_nl = trailing_nl + 1
+                end
                 table.remove(lines, i)
+            else
+                trailing = false
             end
         end
-    end
-
-    if #lines == 0 then
-        return
     end
 
     -- drop indentation
@@ -39,6 +43,12 @@ return function()
 
     for i, line in ipairs(lines) do
         lines[i] = line:sub(ws + 1)
+    end
+
+    if trailing_nl > 0 then
+        for _ = 1, trailing_nl do
+            lines[#lines + 1] = ""
+        end
     end
 
     return table.concat(lines, require("yeet.conf").nl)
