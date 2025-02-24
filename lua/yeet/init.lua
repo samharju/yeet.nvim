@@ -199,7 +199,7 @@ function M.select_target(callback)
         if choice.type == "new_term" then
             set_target(buffer.new())
         elseif choice.type == "new_tmux_pane" then
-            set_target(tmux.new_pane())
+            set_target(tmux.new_pane(M.config))
         elseif choice.type == "new_tmux_window" then
             set_target(tmux.new_window())
         else

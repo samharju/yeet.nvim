@@ -119,9 +119,10 @@ local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
 
 ---Create new tmux pane in vertical split.
 ---@return Target
-function M.new_pane()
+---@param opts Config
+function M.new_pane(opts)
     local target = {}
-    M._job("tmux split-window -dhPF '#D'", function(_, data, _)
+    M._job(opts.tmux_split_pane_command, function(_, data, _)
         for _, line in ipairs(data) do
             local channel = line:match("^%%(%d+)")
             if channel ~= nil then

@@ -8,6 +8,7 @@
 ---@field warn_tmux_not_running boolean
 ---@field hide_term_buffers boolean
 ---@field retry_last_target_on_failure boolean
+---@field tmux_split_pane_command string
 ---@field use_cache_file boolean
 ---@field cache fun():string
 ---@field cache_window_opts vim.api.keyset.win_config | fun():vim.api.keyset.win_config
@@ -123,6 +124,7 @@ C.defaults = {
     clear_before_yeet = true,
     notify_on_success = check_notify_overrides(),
     warn_tmux_not_running = false,
+    tmux_split_pane_command = "tmux split-window -dhPF  '#D'",
     retry_last_target_on_failure = false,
     hide_term_buffers = false,
     cache = C.cachepath,
