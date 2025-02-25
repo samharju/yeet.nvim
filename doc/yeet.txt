@@ -214,6 +214,7 @@ Config                                                        *yeet-conf.Config*
         {warn_tmux_not_running}         (boolean)
         {hide_term_buffers}             (boolean)
         {retry_last_target_on_failure}  (boolean)
+        {tmux_split_pane_command}       (string)
         {use_cache_file}                (boolean)
         {cache}                         (fun():string)
         {cache_window_opts}             (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
