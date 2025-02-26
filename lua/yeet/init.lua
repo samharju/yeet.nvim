@@ -316,7 +316,7 @@ function M.execute(cmd, opts)
         if not ok and M.config.retry_last_target_on_failure then
             log("failed send, trying with last target")
             if M._target.shortname == "[tmux] newp" then
-                set_target(tmux.new_pane())
+                set_target(tmux.new_pane(M.config))
             elseif M._target.shortname == "[tmux] neww" then
                 set_target(tmux.new_window())
             end
