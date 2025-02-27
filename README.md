@@ -230,6 +230,8 @@ Default options:
 
         -- Print warning if pane list could not be fetched, e.g. tmux not running.
         warn_tmux_not_running = false,
+        -- Command used by tmux to create a new pane
+        tmux_split_pane_command = "tmux split-window -dhPF  '#D'",
         -- Retries the last used target if the target is unavailable (e.g., tmux pane closed).
         -- Useful for maintaining workflow without re-selecting the target manually.
         -- Works with: term buffers, tmux panes, tmux windows
