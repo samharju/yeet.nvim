@@ -12,16 +12,17 @@ SETUP                                                               *yeet-setup*
 Options                                                           *yeet.Options*
 
     Fields: ~
-        {yeet_and_run?}                  (boolean)            Execute command immediately.
-        {clear_before_yeet?}             (boolean)            Clear buffer before execution.
-        {interrupt_before_yeet?}         (boolean)            Hit C-c before execution.
-        {notify_on_success?}             (boolean)            Print success notifications.
-        {warn_tmux_not_running?}         (boolean)            Print warning message if tmux is not up.
-        {retry_last_target_on_failure?}  (boolean)            Retries last target in case of failure. This only works for "new buffer term", "new tmux pane", "new tmux window"
-        {hide_term_buffers?}             (boolean)            Hide neovim terminal buffers in `yeet.select_target`
-        {use_cache_file?}                (boolean)            Use cache-file for persisting commands.
-        {cache?}                         (fun():string)       Resolver for cache file.
-        {cache_window_opts?}             (table|fun():table)  win_config passed to |nvim_open_win()|
+        {yeet_and_run?}                  (boolean)               Execute command immediately.
+        {clear_before_yeet?}             (boolean)               Clear buffer before execution.
+        {interrupt_before_yeet?}         (boolean)               Hit C-c before execution.
+        {notify_on_success?}             (boolean)               Print success notifications.
+        {warn_tmux_not_running?}         (boolean)               Print warning message if tmux is not up.
+        {retry_last_target_on_failure?}  (boolean)               Retries last target in case of failure. This only works for "new buffer term", "new tmux pane", "new tmux window"
+        {hide_term_buffers?}             (boolean)               Hide neovim terminal buffers in `yeet.select_target`
+        {use_cache_file?}                (boolean)               Use cache-file for persisting commands.
+        {cache?}                         (fun():string)          Resolver for cache file.
+        {cache_window_opts?}             (table|fun():table)     win_config passed to |nvim_open_win()|
+        {custom_eval?}                   (fun(c:string):string)  Modifying command string before execution.
 
     See: ~
         |standard-path|
@@ -47,6 +48,21 @@ Keep the builtin naming scheme for cache files, but in different location:
      cache = function()
        return require("yeet.conf").cachepath("~/some/dir")
      end
+   }
+<
+
+Custom callback can be used to replace your own placeholders as you wish.
+Example for using <file> as template for current buffer name:
+
+>lua
+   {
+     custom_eval = function(cmd_string)
+         if string.match(cmd_string, "<file>") then
+             local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":.")
+             cmd_string = string.gsub(cmd_string, "<file>", fname)
+         end
+         return cmd_string
+       end
    }
 <
 
@@ -218,6 +234,7 @@ Config                                                        *yeet-conf.Config*
         {use_cache_file}                (boolean)
         {cache}                         (fun():string)
         {cache_window_opts}             (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
+        {custom_eval?}                  (fun(c:string):string)
 
 
 C.git_root({fallback?})                                     *yeet-conf.git_root*

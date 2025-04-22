@@ -31,6 +31,7 @@ local M = {
 ---@field use_cache_file? boolean Use cache-file for persisting commands.
 ---@field cache? fun():string Resolver for cache file.
 ---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
+---@field custom_eval?  fun(c:string):string Modifying command string before execution.
 ---@see standard-path
 ---@see uv.cwd
 ---@see vim.api.keyset.win_config
@@ -54,6 +55,21 @@ local M = {
 ---     cache = function()
 ---       return require("yeet.conf").cachepath("~/some/dir")
 ---     end
+---   }
+---<
+---
+---Custom callback can be used to replace your own placeholders as you wish.
+---Example for using <file> as template for current buffer name:
+---
+--->lua
+---   {
+---     custom_eval = function(cmd_string)
+---         if string.match(cmd_string, "<file>") then
+---             local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":.")
+---             cmd_string = string.gsub(cmd_string, "<file>", fname)
+---         end
+---         return cmd_string
+---       end
 ---   }
 ---<
 ---@brief ]]
@@ -297,6 +313,10 @@ function M.execute(cmd, opts)
         if init_cmds ~= "" then
             cmd = init_cmds .. c.nl .. cmd
         end
+    end
+
+    if opts.custom_eval then
+        cmd = opts.custom_eval(cmd)
     end
 
     -- Command and target are always set at this point

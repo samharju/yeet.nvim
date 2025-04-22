@@ -230,7 +230,7 @@ Default options:
 
         -- Print warning if pane list could not be fetched, e.g. tmux not running.
         warn_tmux_not_running = false,
-        -- Command used by tmux to create a new pane
+        -- Command used by tmux to create a new pane. Must output the pane id with -PF '#D'.
         tmux_split_pane_command = "tmux split-window -dhPF  '#D'",
         -- Retries the last used target if the target is unavailable (e.g., tmux pane closed).
         -- Useful for maintaining workflow without re-selecting the target manually.
@@ -251,8 +251,26 @@ Default options:
            -- returns a default config for vim.api.nvim_open_win with width
            -- of max 120 columns and height of 15 lines. See yeet/conf.lua.
         end,
+
+        -- Callback used before command is sent to target.
+        -- You can use your own placeholders and replace them as you wish in the callback.
+        custom_eval = nil
     }
 })
+```
+
+Using custom_eval-option to replace placeholders:
+
+```lua
+    opts = {
+        custom_eval = function(cmd_string)
+            if string.match(cmd_string, "<file>") then
+                local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":.")
+                cmd_string = string.gsub(cmd_string, "<file>", fname)
+            end
+            return cmd_string
+        end
+   }
 ```
 
 ## Harpoon

@@ -12,6 +12,7 @@
 ---@field use_cache_file boolean
 ---@field cache fun():string
 ---@field cache_window_opts vim.api.keyset.win_config | fun():vim.api.keyset.win_config
+---@field custom_eval? fun(c:string):string
 
 local log = require("yeet.dev")
 
@@ -143,6 +144,7 @@ C.defaults = {
             title = "Yeet",
         }
     end,
+    custom_eval = nil,
 }
 
 return C
