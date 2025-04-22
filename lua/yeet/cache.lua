@@ -49,18 +49,18 @@ function M.open(path, window_opts, cmd, callback)
         local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
         local choice = vim.api.nvim_buf_get_text(0, row, 0, row, -1, {})
+        vim.api.nvim_win_close(win, true)
         if callback ~= nil then
             callback(choice[1])
         end
-        vim.api.nvim_win_close(win, true)
     end, { buffer = buf })
 
     vim.keymap.set("v", "<CR>", function()
         local choice = get_selection()
+        vim.api.nvim_win_close(win, true)
         if callback ~= nil and choice ~= nil then
             callback(choice)
         end
-        vim.api.nvim_win_close(win, true)
     end, { buffer = buf })
 end
 
