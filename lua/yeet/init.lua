@@ -140,19 +140,25 @@ local function refresh_targets()
     local options = {}
 
     if not M.config.hide_term_buffers then
-        table.insert(options, { type = "new_term", name = "[create new term buffer]", channel = 0 })
+        table.insert(options, {
+            type = "new_term",
+            name = "[create new term buffer]",
+            channel = 0,
+        })
     end
 
     if os.getenv("TMUX") ~= nil then
-        table.insert(
-            options,
-            { type = "new_tmux_pane", name = "[create new tmux pane]", channel = 0 }
-        )
+        table.insert(options, {
+            type = "new_tmux_pane",
+            name = "[create new tmux pane]",
+            channel = 0,
+        })
 
-        table.insert(
-            options,
-            { type = "new_tmux_window", name = "[create new tmux window]", channel = 0 }
-        )
+        table.insert(options, {
+            type = "new_tmux_window",
+            name = "[create new tmux window]",
+            channel = 0,
+        })
     end
     for _, v in ipairs(buffer.get_channels()) do
         table.insert(options, v)
@@ -306,7 +312,8 @@ function M.execute(cmd, opts)
         if not ok and M.config.retry_last_target_on_failure then
             log("failed send, trying with last target")
             set_target(buffer.new())
-            ok = buffer.send(M._target, cmd, opts)
+            M.execute(cmd, opts)
+            return
         end
     elseif M._target.type == "tmux" then
         ok = tmux.send(M._target, cmd, opts)
@@ -320,7 +327,8 @@ function M.execute(cmd, opts)
             elseif M._target.shortname == "[tmux] neww" then
                 set_target(tmux.new_window())
             end
-            ok = tmux.send(M._target, cmd, opts)
+            M.execute(cmd, opts)
+            return
         end
     end
 
