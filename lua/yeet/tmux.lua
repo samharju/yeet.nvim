@@ -71,6 +71,9 @@ function M.send(target, cmd, opts)
         false
     )
 
+    if string.find(vim.o.shell, "fish$") then
+        cmd = string.gsub(cmd, "\\", "\\\\")
+    end
     cmd = string.gsub(cmd, '"', '\\"')
     cmd = string.gsub(cmd, "%$", "\\$")
     local c = string.format('tmux send -t %%%s "%s"', target.channel, cmd)
