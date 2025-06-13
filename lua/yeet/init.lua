@@ -16,6 +16,8 @@ local M = {
     _target = nil,
     ---@type string?
     _cmd = nil,
+    ---@type string?
+    _expanded_cmd = nil,
 }
 
 ---@mod yeet-setup SETUP
@@ -318,6 +320,7 @@ function M.execute(cmd, opts)
     if opts.custom_eval then
         cmd = opts.custom_eval(cmd)
     end
+    M._expanded_cmd = cmd
 
     -- Command and target are always set at this point
     log("execute", cmd)
@@ -488,7 +491,7 @@ function M.setqflist(opts)
     end
 
     if M._target.type == "tmux" then
-        local ok = tmux.capture_pane(M._target, errorfile, M._cmd)
+        local ok = tmux.capture_pane(M._target, errorfile, M._expanded_cmd)
         if not ok then
             vim.notify(
                 "[yeet.nvim] failed to capture target",
@@ -499,7 +502,7 @@ function M.setqflist(opts)
     end
 
     if M._target.type == "buffer" then
-        local ok = buffer.capture_pane(M._target, errorfile, M._cmd)
+        local ok = buffer.capture_pane(M._target, errorfile, M._expanded_cmd)
         if not ok then
             vim.notify(
                 "[yeet.nvim] failed to capture target",
