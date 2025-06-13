@@ -349,6 +349,13 @@ function M.execute(cmd, opts)
                 set_target(tmux.new_pane(M.config))
             elseif M._target.shortname == "[tmux] neww" then
                 set_target(tmux.new_window())
+            else
+                log("could not resurrect manually selected target")
+                vim.notify(
+                    "[yeet.nvim] can't resurrect a manually selected target",
+                    vim.log.levels.ERROR
+                )
+                return
             end
             M.execute(cmd, opts)
             return
