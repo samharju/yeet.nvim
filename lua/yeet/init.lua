@@ -526,4 +526,37 @@ function M.setqflist(opts)
     end
 end
 
+local ns = vim.api.nvim_create_namespace("yeet-diag")
+
+function M.efm_to_diagnostics(opts)
+    vim.diagnostic.reset(ns)
+    opts = opts or { open = false }
+
+    M.setqflist(opts)
+    local qf = vim.fn.getqflist()
+
+    local diags = setmetatable({}, {
+        __index = function(table, key)
+            table[key] = {}
+            return table[key]
+        end,
+    })
+
+    for _, item in ipairs(qf) do
+        if item.valid == 1 and item.bufnr ~= 0 then
+            local diagnostic = {
+                ns = ns,
+                source = "yeet",
+                lnum = item.lnum - 1,
+                col = item.col - 1,
+                message = item.text,
+            }
+            table.insert(diags[item.bufnr], diagnostic)
+        end
+    end
+    for buf, buf_diags in pairs(diags) do
+        vim.diagnostic.set(ns, buf, buf_diags)
+    end
+end
+
 return M

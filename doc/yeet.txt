@@ -217,6 +217,9 @@ M.setqflist({opts?})                                            *yeet.setqflist*
         {opts?}  (table)
 
 
+M.efm_to_diagnostics()                                 *yeet.efm_to_diagnostics*
+
+
 ==============================================================================
 CONF                                                                 *yeet-conf*
 
