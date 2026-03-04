@@ -4,11 +4,12 @@ local log = require("yeet.dev")
 local M = {}
 
 ---Create new term buffer in vertical split.
+---@param opts Config
 ---@return Target
-function M.new()
+function M.new(opts)
     local current = vim.api.nvim_get_current_win()
     vim.cmd("vert split")
-    vim.cmd.terminal(require("yeet").config.shell)
+    vim.cmd.terminal(opts.shell)
 
     local buf = vim.api.nvim_get_current_buf()
 

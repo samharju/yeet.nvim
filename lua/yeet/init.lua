@@ -34,7 +34,7 @@ local M = {
 ---@field cache? fun():string Resolver for cache file.
 ---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
 ---@field custom_eval?  fun(c:string):string Modifying command string before execution.
----@field shell? string Specifies the shell command when starting a new Neovim terminal.
+---@field shell? string Specifies the shell command when starting a new Neovim terminal or tmux pane.
 ---@see standard-path
 ---@see uv.cwd
 ---@see vim.api.keyset.win_config
@@ -222,11 +222,11 @@ function M.select_target(callback)
         log("selection:", choice)
 
         if choice.type == "new_term" then
-            set_target(buffer.new())
+            set_target(buffer.new(M.config))
         elseif choice.type == "new_tmux_pane" then
             set_target(tmux.new_pane(M.config))
         elseif choice.type == "new_tmux_window" then
-            set_target(tmux.new_window())
+            set_target(tmux.new_window(M.config))
         else
             log("_set_target", choice)
             set_target(choice)
@@ -276,17 +276,12 @@ function M.execute(cmd, opts)
     if cmd == nil then
         -- No command given and no cache, prompt for command and
         -- callback to execute
-        if M.config.use_cache_file then
+        if opts.use_cache_file then
             log("open cache")
-            cache.open(
-                M._cache,
-                M.config.cache_window_opts,
-                nil,
-                function(choice)
-                    log("open cache callback")
-                    M.execute(choice, opts)
-                end
-            )
+            cache.open(M._cache, opts.cache_window_opts, nil, function(choice)
+                log("open cache callback")
+                M.execute(choice, opts)
+            end)
             return
         end
 
@@ -311,7 +306,7 @@ function M.execute(cmd, opts)
         end)
     end
 
-    if M._target.new and M.config.use_cache_file then
+    if M._target.new and opts.use_cache_file then
         local init_cmds = cache.get_init_commands(M._cache)
         if init_cmds ~= "" then
             cmd = init_cmds .. c.nl .. cmd
@@ -333,9 +328,9 @@ function M.execute(cmd, opts)
 
         -- probably target was closed
         -- so we try creating a new instance of the last target type
-        if not ok and M.config.retry_last_target_on_failure then
+        if not ok and opts.retry_last_target_on_failure then
             log("failed send, trying with last target")
-            set_target(buffer.new())
+            set_target(buffer.new(opts))
             M.execute(cmd, opts)
             return
         end
@@ -344,12 +339,12 @@ function M.execute(cmd, opts)
 
         -- probably target was closed
         -- so we try creating a new instance of the last target type
-        if not ok and M.config.retry_last_target_on_failure then
+        if not ok and opts.retry_last_target_on_failure then
             log("failed send, trying with last target")
             if M._target.shortname == "[tmux] newp" then
-                set_target(tmux.new_pane(M.config))
+                set_target(tmux.new_pane(opts))
             elseif M._target.shortname == "[tmux] neww" then
-                set_target(tmux.new_window())
+                set_target(tmux.new_window(opts))
             else
                 log("could not resurrect manually selected target")
                 vim.notify(

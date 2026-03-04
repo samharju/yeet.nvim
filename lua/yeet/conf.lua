@@ -13,6 +13,7 @@
 ---@field cache fun():string
 ---@field cache_window_opts vim.api.keyset.win_config | fun():vim.api.keyset.win_config
 ---@field custom_eval? fun(c:string):string
+---@field shell? string
 
 local log = require("yeet.dev")
 

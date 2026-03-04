@@ -23,6 +23,7 @@ Options                                                           *yeet.Options*
         {cache?}                         (fun():string)          Resolver for cache file.
         {cache_window_opts?}             (table|fun():table)     win_config passed to |nvim_open_win()|
         {custom_eval?}                   (fun(c:string):string)  Modifying command string before execution.
+        {shell?}                         (string)                Specifies the shell command when starting a new Neovim terminal or tmux pane.
 
     See: ~
         |standard-path|
@@ -235,6 +236,7 @@ Config                                                        *yeet-conf.Config*
         {cache}                         (fun():string)
         {cache_window_opts}             (vim.api.keyset.win_config|fun():vim.api.keyset.win_config)
         {custom_eval?}                  (fun(c:string):string)
+        {shell?}                        (string)
 
 
 C.git_root({fallback?})                                     *yeet-conf.git_root*

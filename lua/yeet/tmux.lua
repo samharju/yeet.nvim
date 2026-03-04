@@ -125,42 +125,51 @@ local listpanefmt = "#D #{session_name}:#{window_index}.#{pane_index} "
 ---@param opts Config
 function M.new_pane(opts)
     local target = {}
-    M._job(opts.tmux_split_pane_command, function(_, data, _)
-        for _, line in ipairs(data) do
-            local channel = line:match("^%%(%d+)")
-            if channel ~= nil then
-                ---@type Target
-                target = {
-                    channel = channel,
-                    type = "tmux",
-                    name = "[tmux] new pane",
-                    shortname = "[tmux] newp",
-                    new = true,
-                }
+    M._job(
+        opts.tmux_split_pane_command .. (opts.shell or ""),
+        function(_, data, _)
+            for _, line in ipairs(data) do
+                local channel = line:match("^%%(%d+)")
+                if channel ~= nil then
+                    ---@type Target
+                    target = {
+                        channel = channel,
+                        type = "tmux",
+                        name = "[tmux] new pane",
+                        shortname = "[tmux] newp",
+                        new = true,
+                    }
+                end
             end
-        end
-    end, false)
+        end,
+        false
+    )
     return target
 end
 
 -- Create new tmux window in the current session
-function M.new_window()
+---@param opts Config
+function M.new_window(opts)
     local target = {}
-    M._job("tmux new-window -dPF '#D'", function(_, data, _)
-        for _, line in ipairs(data) do
-            local channel = line:match("^%%(%d+)")
-            if channel ~= nil then
-                ---@type Target
-                target = {
-                    channel = channel,
-                    type = "tmux",
-                    name = "[tmux] new window",
-                    shortname = "[tmux] neww",
-                    new = true,
-                }
+    M._job(
+        "tmux new-window -dPF '#D' " .. (opts.shell or ""),
+        function(_, data, _)
+            for _, line in ipairs(data) do
+                local channel = line:match("^%%(%d+)")
+                if channel ~= nil then
+                    ---@type Target
+                    target = {
+                        channel = channel,
+                        type = "tmux",
+                        name = "[tmux] new window",
+                        shortname = "[tmux] neww",
+                        new = true,
+                    }
+                end
             end
-        end
-    end, false)
+        end,
+        false
+    )
     return target
 end
 
