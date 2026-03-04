@@ -12,7 +12,9 @@ yeet.setup({
 
 describe("tmux target", function()
     local tmux = require("yeet.tmux")
-    local target = tmux.new_pane(require("yeet").config)
+    local conf = require("yeet").config
+    conf.tmux_split_pane_command = conf.tmux_split_pane_command .. " bash"
+    local target = tmux.new_pane(conf)
     yeet._target = target
 
     vim.system({
@@ -20,16 +22,12 @@ describe("tmux target", function()
         "send-keys",
         "-t",
         string.format("%%%s", target.channel),
-        "bash",
-        "ENTER",
         "PS1='$ '",
         "ENTER",
     }):wait()
-    print("wait for bash")
-    vim.wait(1000)
+    vim.wait(200)
 
     before_each(function()
-        print("before_each")
         local res = vim.system({
             "tmux",
             "send-keys",
@@ -39,7 +37,7 @@ describe("tmux target", function()
             "ENTER",
         }):wait()
         assert.is.True(res.code == 0)
-        vim.wait(250)
+        vim.wait(100)
     end)
 
     local function assert_output(expected)
@@ -71,7 +69,7 @@ describe("tmux target", function()
             out[#out + 1] = lines[i]
         end
         assert.is.equal(expected, table.concat(lines, "\n"))
-        vim.wait(250)
+        vim.wait(100)
     end
 
     it("yeets and runs", function()
@@ -113,7 +111,6 @@ describe("tmux target", function()
         assert_output("$ echo 4\n4\n$")
     end)
 
-    print("teardown")
     vim.system({
         "tmux",
         "kill-pane",

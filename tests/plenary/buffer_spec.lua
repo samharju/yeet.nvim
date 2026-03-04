@@ -8,6 +8,7 @@ yeet.setup({
     notify_on_success = false,
     interrupt_before_yeet = false,
     warn_tmux_not_running = false,
+    shell = "/bin/bash",
 })
 
 ---@param target Target
@@ -28,18 +29,15 @@ end
 
 describe("buffer target", function()
     local buffer = require("yeet.buffer")
-    local target = buffer.new()
+    local target = buffer.new(yeet.config)
     yeet._target = target
 
-    vim.api.nvim_chan_send(target.channel, "bash\n")
     vim.api.nvim_chan_send(target.channel, "PS1='$ '\n")
-    print("wait for bash")
-    vim.wait(1000)
+    vim.wait(100)
 
     before_each(function()
-        print("before_each")
         vim.api.nvim_chan_send(target.channel, "\nclear\n")
-        vim.wait(250)
+        vim.wait(100)
     end)
 
     it("yeets and runs", function()

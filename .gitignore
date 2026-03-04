@@ -1,3 +1,4 @@
+tests/plenary.nvim/
 # Compiled Lua sources
 luac.out
 
