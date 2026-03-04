@@ -8,7 +8,7 @@ local M = {}
 function M.new()
     local current = vim.api.nvim_get_current_win()
     vim.cmd("vert split")
-    vim.cmd.terminal()
+    vim.cmd.terminal(require("yeet").config.shell)
 
     local buf = vim.api.nvim_get_current_buf()
 

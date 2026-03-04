@@ -145,6 +145,7 @@ C.defaults = {
         }
     end,
     custom_eval = nil,
+    shell = nil,
 }
 
 return C

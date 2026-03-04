@@ -34,6 +34,7 @@ local M = {
 ---@field cache? fun():string Resolver for cache file.
 ---@field cache_window_opts? table | fun():table win_config passed to |nvim_open_win()|
 ---@field custom_eval?  fun(c:string):string Modifying command string before execution.
+---@field shell? string Specifies the shell command when starting a new Neovim terminal.
 ---@see standard-path
 ---@see uv.cwd
 ---@see vim.api.keyset.win_config
