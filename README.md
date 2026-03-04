@@ -241,10 +241,10 @@ Default options:
         -- Resolver for cache file
         cache = function()
            -- resolves project path and uses stdpath("cache")/yeet/<project>, see :h yeet
-        end
+        end,
 
         -- Open cache file instead of in memory prompt.
-        use_cache_file = true
+        use_cache_file = true,
 
         -- Window options for cache float
         cache_window_opts = function()
@@ -254,7 +254,13 @@ Default options:
 
         -- Callback used before command is sent to target.
         -- You can use your own placeholders and replace them as you wish in the callback.
-        custom_eval = nil
+        custom_eval = nil,
+
+        -- Define custom shell to be used when spawning target.
+        -- Default behaviour is 'nil':
+        --  1. neovim terminal defaults to vim.o.shell
+        --  2. tmux uses it's own configuration (default-shell, $SHELL etc.)
+        shell = nil
     }
 })
 ```
